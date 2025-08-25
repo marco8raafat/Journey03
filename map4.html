@@ -309,6 +309,113 @@
             font-weight: bold;
         }
 
+        /* Level Information Popup */
+        .level-info {
+            position: absolute;
+            left: -300px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #205c6b;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .level-info.show {
+            opacity: 1;
+            visibility: visible;
+            left: -320px;
+            pointer-events: auto;
+        }
+
+        .level-info h3 {
+            color: #205c6b;
+            font-size: 18px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #205c6b;
+            padding-bottom: 8px;
+        }
+
+        .level-info p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .level-info .description {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .level-info .date {
+            font-weight: bold;
+            color: #205c6b;
+        }
+
+        .level-info .tickets {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .level-info .tickets.limited {
+            color: #ff6b6b;
+        }
+
+        .booking-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(45deg, #10b981, #34d399);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .booking-btn:hover {
+            background: linear-gradient(45deg, #059669, #10b981);
+            transform: translateY(-2px);
+        }
+
+        .booking-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .level-info .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #205c6b;
+            cursor: pointer;
+            padding: 0;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .level-info .close-btn:hover {
+            color: #ff6b6b;
+        }
+
         /* Progress bar */
         .progress-container {
             position: fixed;
@@ -410,23 +517,71 @@
         
         <!-- Stations positioned vertically -->
         <div class="stations">
-            <div class="station" style="top: 5%;" data-station="6" onclick="selectStation(6)">
+            <div class="station" style="top: 5%;" data-station="6" onclick="toggleLevelInfo(6)">
                 <span class="station-label">6</span>
+                <div class="level-info" id="level-info-6">
+                    <button class="close-btn" onclick="closeLevelInfo(6, event)">×</button>
+                    <h3>Advanced Programming</h3>
+                    <p class="description">Master advanced algorithms, data structures, and design patterns</p>
+                    <p class="date">Date: March 15, 2024</p>
+                    <p class="tickets">Available Tickets: 25</p>
+                    <button class="booking-btn" onclick="bookLevel(6, event)">Book Now</button>
+                </div>
             </div>
-            <div class="station" style="top: 20%;" data-station="5" onclick="selectStation(5)">
+            <div class="station" style="top: 20%;" data-station="5" onclick="toggleLevelInfo(5)">
                 <span class="station-label">5</span>
+                <div class="level-info" id="level-info-5">
+                    <button class="close-btn" onclick="closeLevelInfo(5, event)">×</button>
+                    <h3>Web Development</h3>
+                    <p class="description">Learn modern web technologies including React, Node.js, and databases</p>
+                    <p class="date">Date: March 10, 2024</p>
+                    <p class="tickets">Available Tickets: 18</p>
+                    <button class="booking-btn" onclick="bookLevel(5, event)">Book Now</button>
+                </div>
             </div>
-            <div class="station" style="top: 35%;" data-station="4" onclick="selectStation(4)">
+            <div class="station" style="top: 35%;" data-station="4" onclick="toggleLevelInfo(4)">
                 <span class="station-label">4</span>
+                <div class="level-info" id="level-info-4">
+                    <button class="close-btn" onclick="closeLevelInfo(4, event)">×</button>
+                    <h3>Object-Oriented Programming</h3>
+                    <p class="description">Understand OOP principles, inheritance, polymorphism, and encapsulation</p>
+                    <p class="date">Date: March 5, 2024</p>
+                    <p class="tickets limited">Available Tickets: 5</p>
+                    <button class="booking-btn" onclick="bookLevel(4, event)">Book Now</button>
+                </div>
             </div>
-            <div class="station" style="top: 50%;" data-station="3" onclick="selectStation(3)">
+            <div class="station" style="top: 50%;" data-station="3" onclick="toggleLevelInfo(3)">
                 <span class="station-label">3</span>
+                <div class="level-info" id="level-info-3">
+                    <button class="close-btn" onclick="closeLevelInfo(3, event)">×</button>
+                    <h3>Data Structures & Algorithms</h3>
+                    <p class="description">Explore arrays, linked lists, trees, sorting, and searching algorithms</p>
+                    <p class="date">Date: February 28, 2024</p>
+                    <p class="tickets">Available Tickets: 32</p>
+                    <button class="booking-btn" onclick="bookLevel(3, event)">Book Now</button>
+                </div>
             </div>
-            <div class="station" style="top: 70%;" data-station="2" onclick="selectStation(2)">
+            <div class="station" style="top: 70%;" data-station="2" onclick="toggleLevelInfo(2)">
                 <span class="station-label">2</span>
+                <div class="level-info" id="level-info-2">
+                    <button class="close-btn" onclick="closeLevelInfo(2, event)">×</button>
+                    <h3>Programming Fundamentals</h3>
+                    <p class="description">Learn basic programming concepts, variables, loops, and functions</p>
+                    <p class="date">Date: February 20, 2024</p>
+                    <p class="tickets">Available Tickets: 45</p>
+                    <button class="booking-btn" onclick="bookLevel(2, event)">Book Now</button>
+                </div>
             </div>
-            <div class="station" style="top: 90%;" data-station="1" onclick="selectStation(1)">
+            <div class="station" style="top: 90%;" data-station="1" onclick="toggleLevelInfo(1)">
                 <span class="station-label">1</span>
+                <div class="level-info" id="level-info-1">
+                    <button class="close-btn" onclick="closeLevelInfo(1, event)">×</button>
+                    <h3>Introduction to Computing</h3>
+                    <p class="description">Basic computer concepts, introduction to programming logic</p>
+                    <p class="date">Date: February 15, 2024</p>
+                    <p class="tickets limited">Available Tickets: 8</p>
+                    <button class="booking-btn" onclick="bookLevel(1, event)">Book Now</button>
+                </div>
             </div>
         </div>
         
@@ -481,6 +636,59 @@
             // Haptic feedback on mobile
             if ('vibrate' in navigator) {
                 navigator.vibrate(50);
+            }
+        }
+
+        function toggleLevelInfo(levelNumber) {
+            // Close all other level info panels first
+            document.querySelectorAll('.level-info').forEach(info => {
+                info.classList.remove('show');
+            });
+            
+            // Toggle the clicked level info
+            const levelInfo = document.getElementById(`level-info-${levelNumber}`);
+            levelInfo.classList.add('show');
+            
+            // Set current station
+            currentStation = levelNumber;
+            
+            // Haptic feedback on mobile
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+        }
+
+        function closeLevelInfo(levelNumber, event) {
+            // Prevent the station click event from firing
+            event.stopPropagation();
+            
+            const levelInfo = document.getElementById(`level-info-${levelNumber}`);
+            levelInfo.classList.remove('show');
+        }
+
+        function bookLevel(levelNumber, event) {
+            // Prevent the station click event from firing
+            event.stopPropagation();
+            
+            // Get level information
+            const levelNames = {
+                1: "Introduction to Computing",
+                2: "Programming Fundamentals", 
+                3: "Data Structures & Algorithms",
+                4: "Object-Oriented Programming",
+                5: "Web Development",
+                6: "Advanced Programming"
+            };
+            
+            const levelName = levelNames[levelNumber];
+            
+            // Show booking confirmation
+            if (confirm(`Book "${levelName}" (Level ${levelNumber})?\n\nThis will redirect you to the booking page.`)) {
+                // Here you would typically redirect to a booking page or open a booking modal
+                alert(`Booking confirmed for Level ${levelNumber}: ${levelName}!\n\nYou will be redirected to the payment page.`);
+                
+                // Example: Redirect to booking page
+                // window.location.href = `/book?level=${levelNumber}`;
             }
         }
 
