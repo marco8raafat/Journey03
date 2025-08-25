@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>القطار - Train Journey</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(180deg, #87CEEB 0%, #cce6fd 100%);
+            animation: dayTime 40s linear infinite;
+            touch-action: manipulation;
+        }
+.stage{
+    left:35%;
+    transform: translateX(-35%);
+}
+        /* Mobile-optimized controls */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: #205c6b;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+        }
+
+        .control-btn:hover, .control-btn:active {
+            background: #2a7a8a;
+            transform: scale(0.95);
+        }
+
+        .control-btn.active {
+            background: #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+
+
+        /*CLOUDS - Enhanced for mobile*/
+        .sky {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .cloud {
+            position: absolute;
+            opacity: 0.8;
+        }
+
+        .cloud:before,
+        .cloud:after {
+            position: absolute;
+            content: '';
+        }
+
+        .cloud,
+        .cloud:before,
+        .cloud:after {
+            background: #fff;
+            border-radius: 50%;
+            border: 15px solid #fff;
+            height: 20px;
+            width: 30px;
+        }
+
+        .cloud:before {
+            left: -20px;
+            bottom: -30px;
+            border-width: 18px;
+        }
+
+        .cloud:after {
+            right: -15px;
+            bottom: -45px;
+            border-width: 16px;
+        }
+
+        .cloud:nth-child(1) {
+            top: 10%;
+            left: 20%;
+            animation: windHorizontal 25s infinite linear;
+        }
+
+        .cloud:nth-child(2) {
+            top: 30%;
+            left: 60%;
+            animation: windHorizontal 35s infinite linear;
+            animation-delay: -10s;
+        }
+
+        .cloud:nth-child(3) {
+            top: 60%;
+            left: 10%;
+            animation: windHorizontal 40s infinite linear;
+            animation-delay: -20s;
+        }
+
+        /* Track line */
+        .track {
+            position: absolute;
+            right: 60px;
+            top: 0;
+            height: 100vh;
+            width: 6px;
+            background: repeating-linear-gradient(
+                to bottom,
+                #8B4513 0px,
+                #8B4513 15px,
+                transparent 15px,
+                transparent 25px
+            );
+            z-index: 1;
+        }
+
+        .track:after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: 0;
+            height: 100%;
+            width: 22px;
+            background: repeating-linear-gradient(
+                to bottom,
+                #696969 0px,
+                #696969 8px,
+                transparent 8px,
+                transparent 12px
+            );
+            z-index: -1;
+        }
+
+        /*TRAIN - Mobile optimized*/
+        .train {
+            position: absolute;
+            right: 2px;
+            height: 80px;
+            width: 200px;
+            z-index: 10;
+            transform: rotate(-90deg);
+            transform-origin: center;
+            transition: animation-duration 0.5s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wagon,
+        .locomotive {
+            display: block;
+            width: 45px;
+            height: 35px;
+            background: linear-gradient(45deg, #dc2626, #ef4444);
+            position: relative;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+
+        .locomotive {
+            background: linear-gradient(45deg, #1e40af, #3b82f6);
+        }
+
+        /*WHEELS - Mobile sized*/
+        .wagon:before,
+        .wagon:after,
+        .locomotive:before,
+        .locomotive:after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #333;
+            bottom: -8px;
+            background: linear-gradient(45deg, #666, #999);
+            animation: spin var(--spin-speed, 2s) linear infinite;
+        }
+
+        .wagon:before,
+        .locomotive:before {
+            left: 4px;
+        }
+
+        .wagon:after,
+        .locomotive:after {
+            right: 4px;
+        }
+
+        /* Locomotive details */
+        .locomotive .cabin {
+            width: 35px;
+            height: 20px;
+            background: linear-gradient(45deg, #1e40af, #3b82f6);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+        }
+
+        .locomotive .cabin:before {
+            content: '';
+            width: 15px;
+            height: 10px;
+            position: absolute;
+            top: 3px;
+            left: 10px;
+            border-radius: 2px;
+            border: 1px solid #fff;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .locomotive .chimney {
+            position: absolute;
+            display:none;
+            width: 8px;
+            height: 8px;
+            background: #333333;
+            right: 5px;
+            top: -6px;
+            border-radius: 2px;
+        }
+
+        .locomotive .chimney:after {
+            content: '💨';
+            position: absolute;
+            top: -15px;
+            left: 15px;
+            font-size: 12px;
+            animation: smoke 2s infinite;
+        }
+
+        /* Stations - Mobile optimized */
+        .stations {
+            position: absolute;
+            right: 80px;
+            top: 0;
+            height: 100vh;
+            width: 60px;
+            z-index: 100;
+            pointer-events: auto;
+        }
+
+        .station {
+            position: absolute;
+            right: 0;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #fff, #f8f9fa);
+            border: 3px solid #205c6b;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+        }
+
+        .station:hover,
+        .station:active {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .station-label {
+            font-size: 18px;
+            color: #205c6b;
+            font-weight: bold;
+        }
+
+        .station.visited {
+            background: linear-gradient(45deg, #10b981, #34d399);
+            border-color: #059669;
+        }
+
+        .station.visited .station-label {
+            color: white;
+        }
+
+        .station.current {
+            animation: currentStation 2s infinite;
+        }
+
+        @keyframes currentStation {
+            0%, 100% { 
+                border-color: #205c6b; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+            }
+            50% { 
+                border-color: #ff6b6b; 
+                box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4); 
+            }
+        }
+
+        /* Progress bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /*ANIMATIONS*/
+        @keyframes dayTime {
+            0% { background: linear-gradient(180deg, #87CEEB 0%, #cce6fd 100%); }
+            50% { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); }
+            100% { background: linear-gradient(180deg, #87CEEB 0%, #cce6fd 100%); }
+        }
+
+        @keyframes windHorizontal {
+            0% { transform: translateX(-100px); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateX(calc(100vw + 100px)); opacity: 0; }
+        }
+
+        @keyframes voyageVertical {
+            0% { bottom: -200px; }
+            100% { bottom: 100vh; }
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes smoke {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-20px) scale(1.5); }
+        }
+
+        .train.moving {
+            animation: voyageVertical var(--journey-duration, 20s) linear infinite;
+        }
+
+        /* Mobile landscape adjustments */
+        @media screen and (orientation: landscape) and (max-height: 500px) {
+            .controls {
+                bottom: 10px;
+                scale: 0.9;
+            }
+            
+
+            
+            .stations {
+                right: 70px;
+            }
+            
+            .station {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .station-label {
+                font-size: 14px;
+            }
+
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .controls {
+                background: rgba(0, 0, 0, 0.8);
+            }
+            
+
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+
+    <section class="stage">
+        <div class="sky">
+            <div class="cloud"></div>
+            <div class="cloud"></div>
+            <div class="cloud"></div>
+        </div>
+        
+        <div class="track"></div>
+        
+        <!-- Stations positioned vertically -->
+        <div class="stations">
+            <div class="station" style="top: 5%;" data-station="6" onclick="selectStation(6)">
+                <span class="station-label">6</span>
+            </div>
+            <div class="station" style="top: 20%;" data-station="5" onclick="selectStation(5)">
+                <span class="station-label">5</span>
+            </div>
+            <div class="station" style="top: 35%;" data-station="4" onclick="selectStation(4)">
+                <span class="station-label">4</span>
+            </div>
+            <div class="station" style="top: 50%;" data-station="3" onclick="selectStation(3)">
+                <span class="station-label">3</span>
+            </div>
+            <div class="station" style="top: 70%;" data-station="2" onclick="selectStation(2)">
+                <span class="station-label">2</span>
+            </div>
+            <div class="station" style="top: 90%;" data-station="1" onclick="selectStation(1)">
+                <span class="station-label">1</span>
+            </div>
+        </div>
+        
+        <div class="train moving" id="train">
+            <div class="wagon"></div>
+            <div class="wagon"></div>
+            <div class="wagon"></div>
+            <div class="locomotive">
+                <div class="cabin"></div>
+                <div class="chimney"></div>
+            </div>
+        </div>
+    </section>
+
+    <div class="controls">
+        <button class="control-btn" id="playPauseBtn" onclick="togglePlayPause()" title="Play/Pause">
+            ⏸️
+        </button>
+    </div>
+
+    <script>
+        let isPlaying = true;
+        let currentStation = 1;
+        let journeyProgress = 0;
+        
+        const train = document.getElementById('train');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const progressBar = document.getElementById('progressBar');
+
+
+
+        function togglePlayPause() {
+            isPlaying = !isPlaying;
+            
+            if (isPlaying) {
+                train.style.animationPlayState = 'running';
+                playPauseBtn.innerHTML = '⏸️';
+                playPauseBtn.classList.remove('active');
+            } else {
+                train.style.animationPlayState = 'paused';
+                playPauseBtn.innerHTML = '▶️';
+                playPauseBtn.classList.add('active');
+            }
+        }
+
+
+
+        function selectStation(stationNumber) {
+            // Mark stations as visited
+            document.querySelectorAll('.station').forEach(station => {
+                const num = parseInt(station.dataset.station);
+                station.classList.remove('current');
+                
+                if (num <= stationNumber) {
+                    station.classList.add('visited');
+                } else {
+                    station.classList.remove('visited');
+                }
+            });
+            
+            // Mark current station
+            document.querySelector(`[data-station="${stationNumber}"]`).classList.add('current');
+            currentStation = stationNumber;
+            
+            // Haptic feedback on mobile
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+        }
+
+        function updateProgress() {
+            journeyProgress = Math.min(100, journeyProgress + (100 / (20 * 60)));
+            progressBar.style.width = `${journeyProgress}%`;
+            
+            if (journeyProgress >= 100) {
+                journeyProgress = 0;
+            }
+        }
+
+        // Update progress periodically
+        setInterval(updateProgress, 100);
+        
+        // Auto-update stations based on train position
+        setInterval(() => {
+            if (isPlaying) {
+                const progress = (journeyProgress / 100) * 6;
+                const nearestStation = Math.max(1, Math.min(6, Math.round(progress)));
+                if (nearestStation !== currentStation) {
+                    selectStation(nearestStation);
+                }
+            }
+        }, 1000);
+
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Handle orientation change
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                // Recalculate positions if needed
+            }, 100);
+        });
+    </script>
+</body>
+</html>
