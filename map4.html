@@ -606,6 +606,9 @@
         <button class="control-btn" onclick="window.location.href='bonus.html'" title="المكافآت">
             🎁
         </button>
+        <button class="control-btn" onclick="window.location.href='lockLevels.html'" title="التحكم في المراحل">
+            🔐
+        </button>
         <button class="control-btn" onclick="window.location.href='profile.html'" title="الملف الشخصي">
             👤
         </button>
@@ -649,6 +652,19 @@
         }
 
         function toggleLevelInfo(levelNumber) {
+            // Check if user is logged in and get their team
+            const currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                const user = users.find(u => u.email === currentUser);
+                
+                // Check if level is locked for this user's team
+                if (user && user.team && !canAccessLevel(user.team, levelNumber)) {
+                    alert('هذه المرحلة مغلقة حالياً لفريقك. يرجى المحاولة لاحقاً.');
+                    return;
+                }
+            }
+            
             // Close all other level info panels first
             document.querySelectorAll('.level-info').forEach(info => {
                 info.classList.remove('show');
@@ -687,6 +703,16 @@
                 return;
             }
             
+            // Get user data to check team access
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.email === currentUser);
+            
+            // Check if level is locked for this user's team
+            if (user && user.team && !canAccessLevel(user.team, levelNumber)) {
+                alert('هذه المرحلة مغلقة حالياً لفريقك. لا يمكن حجزها الآن.');
+                return;
+            }
+            
             // Get level information
             const levelNames = {
                 1: "Introduction to Computing",
@@ -700,9 +726,6 @@
             const levelName = levelNames[levelNumber];
             
             // Check if already booked
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.email === currentUser);
-            
             if (user && user.bookings) {
                 const existingBooking = user.bookings.find(b => b.levelId == levelNumber);
                 if (existingBooking) {
@@ -774,6 +797,15 @@
                 }
             }
         }, 1000);
+
+        // Function to check if user's team can access a level
+        function canAccessLevel(userTeam, levelId) {
+            const settings = JSON.parse(localStorage.getItem('levelSettings') || '{}');
+            if (!settings[userTeam]) {
+                return true; // Default: all levels unlocked
+            }
+            return settings[userTeam][levelId] !== false;
+        }
 
         // Prevent zoom on double tap
         let lastTouchEnd = 0;

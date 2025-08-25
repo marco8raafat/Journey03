@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التحكم في المراحل</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #205c6b, #2a7a8a);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #10b981, #34d399);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #059669, #10b981);
+            transform: translateY(-2px);
+        }
+
+        .btn.back-btn {
+            background: linear-gradient(45deg, #6f42c1, #8e44ad);
+        }
+
+        .btn.back-btn:hover {
+            background: linear-gradient(45deg, #5a2d8a, #6f42c1);
+        }
+
+        .filter-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #eee;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font-weight: bold;
+            color: #205c6b;
+            font-size: 16px;
+        }
+
+        .team-select {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            font-size: 16px;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .team-select:focus {
+            border-color: #205c6b;
+            outline: none;
+            box-shadow: 0 0 5px rgba(32, 92, 107, 0.3);
+        }
+
+        .levels-container {
+            padding: 20px;
+            display: none;
+        }
+
+        .levels-container.active {
+            display: block;
+        }
+
+        .team-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #205c6b;
+        }
+
+        .team-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #205c6b;
+            margin-bottom: 5px;
+        }
+
+        .team-members {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .level-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .level-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .level-card.locked {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .level-card.unlocked {
+            border-color: #10b981;
+            background: #f0fff4;
+        }
+
+        .level-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .level-number {
+            background: linear-gradient(45deg, #205c6b, #2a7a8a);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .level-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #205c6b;
+            flex-grow: 1;
+            margin: 0 15px;
+        }
+
+        .level-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #ccc;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .level-toggle.active {
+            background: #10b981;
+        }
+
+        .level-toggle::before {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: white;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .level-toggle.active::before {
+            transform: translateX(30px);
+        }
+
+        .level-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .level-date {
+            color: #205c6b;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .level-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .level-status.locked {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .level-status.unlocked {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-icon {
+            font-size: 20px;
+        }
+
+        .bulk-actions {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .bulk-btn {
+            background: linear-gradient(45deg, #6c757d, #495057);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .bulk-btn:hover {
+            background: linear-gradient(45deg, #495057, #343a40);
+        }
+
+        .bulk-btn.unlock-all {
+            background: linear-gradient(45deg, #10b981, #34d399);
+        }
+
+        .bulk-btn.lock-all {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+        }
+
+        @media (max-width: 768px) {
+            .levels-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .team-select {
+                min-width: auto;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>التحكم في المراحل - إدارة الوصول</h1>
+            <p>تحكم في فتح وإغلاق المراحل لكل فريق على حدة</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="saveAllSettings()">حفظ جميع الإعدادات</button>
+            <button class="btn" onclick="loadTeamData()">تحديث البيانات</button>
+            <a href="map4.html" class="btn back-btn">عودة للخريطة</a>
+            <span style="margin-right: auto; color: #666;">آخر تحديث: <span id="lastUpdate">-</span></span>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <label class="filter-label">اختر الفريق:</label>
+                <select class="team-select" id="teamSelect" onchange="showTeamLevels()">
+                    <option value="">-- اختر الفريق --</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="levels-container" id="levelsContainer">
+            <div class="team-info" id="teamInfo">
+                <!-- سيتم تعبئة معلومات الفريق هنا -->
+            </div>
+
+            <div class="bulk-actions">
+                <button class="bulk-btn unlock-all" onclick="bulkToggle(true)">فتح جميع المراحل</button>
+                <button class="bulk-btn lock-all" onclick="bulkToggle(false)">إغلاق جميع المراحل</button>
+            </div>
+
+            <div class="levels-grid" id="levelsGrid">
+                <!-- سيتم تعبئة المراحل هنا -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // بيانات المراحل
+        const levels = [
+            { 
+                id: 1, 
+                name: "Introduction to Computing", 
+                description: "Basic computer concepts, introduction to programming logic",
+                date: "February 15, 2024" 
+            },
+            { 
+                id: 2, 
+                name: "Programming Fundamentals", 
+                description: "Learn basic programming concepts, variables, loops, and functions",
+                date: "February 20, 2024" 
+            },
+            { 
+                id: 3, 
+                name: "Data Structures & Algorithms", 
+                description: "Explore arrays, linked lists, trees, sorting, and searching algorithms",
+                date: "February 28, 2024" 
+            },
+            { 
+                id: 4, 
+                name: "Object-Oriented Programming", 
+                description: "Understand OOP principles, inheritance, polymorphism, and encapsulation",
+                date: "March 5, 2024" 
+            },
+            { 
+                id: 5, 
+                name: "Web Development", 
+                description: "Learn modern web technologies including React, Node.js, and databases",
+                date: "March 10, 2024" 
+            },
+            { 
+                id: 6, 
+                name: "Advanced Programming", 
+                description: "Master advanced algorithms, data structures, and design patterns",
+                date: "March 15, 2024" 
+            }
+        ];
+
+        let currentTeam = '';
+        let levelSettings = JSON.parse(localStorage.getItem('levelSettings') || '{}');
+
+        // تحميل البيانات عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTeamData();
+        });
+
+        // تحميل بيانات الفرق
+        function loadTeamData() {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const teamSelect = document.getElementById('teamSelect');
+            
+            // الحصول على قائمة الفرق الفريدة
+            const teams = [...new Set(users.map(user => user.team).filter(team => team))];
+            
+            // مسح الخيارات الحالية
+            teamSelect.innerHTML = '<option value="">-- اختر الفريق --</option>';
+            
+            // إضافة الفرق إلى القائمة
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team;
+                option.textContent = team;
+                teamSelect.appendChild(option);
+            });
+
+            // تحديث وقت آخر تحديث
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
+        }
+
+        // عرض مراحل الفريق المختار
+        function showTeamLevels() {
+            const teamSelect = document.getElementById('teamSelect');
+            const selectedTeam = teamSelect.value;
+            const levelsContainer = document.getElementById('levelsContainer');
+            
+            if (!selectedTeam) {
+                levelsContainer.classList.remove('active');
+                return;
+            }
+
+            currentTeam = selectedTeam;
+            levelsContainer.classList.add('active');
+            
+            // عرض معلومات الفريق
+            displayTeamInfo(selectedTeam);
+            
+            // عرض المراحل
+            displayLevels(selectedTeam);
+        }
+
+        // عرض معلومات الفريق
+        function displayTeamInfo(teamName) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const teamMembers = users.filter(user => user.team === teamName);
+            
+            const teamInfo = document.getElementById('teamInfo');
+            teamInfo.innerHTML = `
+                <div class="team-name">${teamName}</div>
+                <div class="team-members">
+                    عدد الأعضاء: ${teamMembers.length} | 
+                    الأعضاء: ${teamMembers.map(m => m.name).join('، ')}
+                </div>
+            `;
+        }
+
+        // عرض المراحل
+        function displayLevels(teamName) {
+            const levelsGrid = document.getElementById('levelsGrid');
+            levelsGrid.innerHTML = '';
+
+            levels.forEach(level => {
+                const isUnlocked = isLevelUnlocked(teamName, level.id);
+                
+                const levelCard = document.createElement('div');
+                levelCard.className = `level-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+                
+                levelCard.innerHTML = `
+                    <div class="level-header">
+                        <div class="level-number">${level.id}</div>
+                        <div class="level-title">${level.name}</div>
+                        <div class="level-toggle ${isUnlocked ? 'active' : ''}" 
+                             onclick="toggleLevel('${teamName}', ${level.id})">
+                        </div>
+                    </div>
+                    <div class="level-description">${level.description}</div>
+                    <div class="level-date">التاريخ: ${level.date}</div>
+                    <div class="level-status ${isUnlocked ? 'unlocked' : 'locked'}">
+                        <span class="status-icon">${isUnlocked ? '🔓' : '🔒'}</span>
+                        <span>${isUnlocked ? 'مفتوحة للحجز' : 'مغلقة'}</span>
+                    </div>
+                `;
+                
+                levelsGrid.appendChild(levelCard);
+            });
+        }
+
+        // التحقق من حالة المرحلة
+        function isLevelUnlocked(teamName, levelId) {
+            if (!levelSettings[teamName]) {
+                levelSettings[teamName] = {};
+            }
+            // افتراضياً جميع المراحل مفتوحة
+            return levelSettings[teamName][levelId] !== false;
+        }
+
+        // تبديل حالة المرحلة
+        function toggleLevel(teamName, levelId) {
+            if (!levelSettings[teamName]) {
+                levelSettings[teamName] = {};
+            }
+            
+            const currentState = isLevelUnlocked(teamName, levelId);
+            levelSettings[teamName][levelId] = !currentState;
+            
+            // حفظ الإعدادات
+            localStorage.setItem('levelSettings', JSON.stringify(levelSettings));
+            
+            // تحديث العرض
+            displayLevels(teamName);
+        }
+
+        // تبديل جماعي للمراحل
+        function bulkToggle(unlock) {
+            if (!currentTeam) return;
+            
+            if (!levelSettings[currentTeam]) {
+                levelSettings[currentTeam] = {};
+            }
+            
+            levels.forEach(level => {
+                levelSettings[currentTeam][level.id] = unlock;
+            });
+            
+            // حفظ الإعدادات
+            localStorage.setItem('levelSettings', JSON.stringify(levelSettings));
+            
+            // تحديث العرض
+            displayLevels(currentTeam);
+        }
+
+        // حفظ جميع الإعدادات
+        function saveAllSettings() {
+            localStorage.setItem('levelSettings', JSON.stringify(levelSettings));
+            alert('تم حفظ جميع إعدادات التحكم في المراحل بنجاح!');
+        }
+
+        // دالة للتحقق من إمكانية الوصول للمرحلة (للاستخدام في الصفحات الأخرى)
+        function canAccessLevel(userTeam, levelId) {
+            const settings = JSON.parse(localStorage.getItem('levelSettings') || '{}');
+            if (!settings[userTeam]) {
+                return true; // افتراضياً مفتوح
+            }
+            return settings[userTeam][levelId] !== false;
+        }
+
+        // تصدير الدالة للاستخدام الخارجي
+        window.canAccessLevel = canAccessLevel;
+    </script>
+</body>
+</html>
