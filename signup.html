@@ -17,6 +17,15 @@
             <input type="password" id="password" name="password" required>
             <label for="phone">رقم الهاتف:</label>
             <input type="tel" id="phone" name="phone" required>
+            <label for="role">الصلاحية:</label>
+            <select id="role" name="role" required>
+                <option value="user" selected>مستخدم</option>
+                <option value="admin">مسؤول (أدمن)</option>
+            </select>
+            <div id="adminTokenWrapper" style="display:none;">
+                <label for="adminToken">رمز التحقق للأدمن:</label>
+                <input type="password" id="adminToken" name="adminToken" placeholder="أدخل الرمز السري" autocomplete="off">
+            </div>
             <label for="team">الفريق:</label>
             <select id="team" name="team" required>
                 <option value="">اختر الفريق</option>

@@ -2,6 +2,24 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     const signupForm = document.getElementById('signupForm');
+    const roleSelect = document.getElementById('role');
+    const adminTokenWrapper = document.getElementById('adminTokenWrapper');
+    const adminTokenInput = document.getElementById('adminToken');
+
+    // Simple hard-coded admin token (you can change / externalize later)
+    const ADMIN_TOKEN = 'TRAIN-ADMIN-2025';
+
+    // Show/hide token field based on role
+    roleSelect.addEventListener('change', () => {
+        if (roleSelect.value === 'admin') {
+            adminTokenWrapper.style.display = 'block';
+            adminTokenInput.required = true;
+        } else {
+            adminTokenWrapper.style.display = 'none';
+            adminTokenInput.required = false;
+            adminTokenInput.value = '';
+        }
+    });
     
     signupForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -11,6 +29,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('password').value;
         const phone = document.getElementById('phone').value;
         const team = document.getElementById('team').value;
+        const role = roleSelect.value;
+        const providedToken = adminTokenInput.value.trim();
+
+        if (role === 'admin') {
+            if (!providedToken) {
+                alert('الرجاء إدخال رمز الأدمن');
+                return;
+            }
+            if (providedToken !== ADMIN_TOKEN) {
+                alert('رمز الأدمن غير صحيح');
+                return;
+            }
+        }
         
         // Get existing users from localStorage
         const users = JSON.parse(localStorage.getItem('users') || '[]');
@@ -36,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
             bonus4: 0,
             bonus5: 0,
             bonus6: 0,
+            role: role,
             registrationDate: new Date().toLocaleDateString('en-GB'),
             bookings: []
         };
@@ -52,7 +84,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show success message
         alert('تم إنشاء الحساب بنجاح!');
         
-        // Redirect to map4 page
-        window.location.href = 'map4.html';
+        // Redirect based on role
+        if (role === 'admin') {
+            window.location.href = 'adminDash.html';
+        } else {
+            window.location.href = 'map4.html';
+        }
     });
 });
