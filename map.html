@@ -10,10 +10,44 @@
     <div class="map-container">
         <h1>خريطة الكنز</h1>
         
-        <!-- SVG Path connecting all levels -->
-        <svg class="treasure-path" viewBox="0 0 1200 800">
-            <path d="M100,700 Q200,600 300,650 Q400,700 500,600 Q600,500 700,550 Q800,600 900,500 Q1000,400 1100,450" 
-                  stroke="#8B4513" stroke-width="8" fill="none" stroke-dasharray="10,5"/>
+        <!-- SVG lines connecting each level one by one, precisely matching level icon centers -->
+        <svg class="treasure-path" viewBox="0 0 1300 900">
+            <!-- Level positions (center of icon):
+                 Level 1: left 80 + 30, top 650 + 30
+                 Level 2: left 180 + 30, top 600 + 30
+                 Level 3: left 280 + 30, top 630 + 30
+                 Level 4: left 380 + 30, top 680 + 30
+                 Level 5: left 480 + 30, top 580 + 30
+                 Level 6: left 580 + 30, top 480 + 30
+                 Level 7: left 680 + 30, top 530 + 30
+                 Level 8: left 780 + 30, top 580 + 30
+                 Level 9: left 880 + 30, top 480 + 30
+                 Level 10: left 980 + 30, top 380 + 30
+                 Level 11: left 1080 + 30, top 430 + 30
+                 Level 12: left 1180 + 30, top 380 + 30
+            -->
+            <!-- Level 1 to 2 -->
+            <line x1="110" y1="680" x2="210" y2="630" stroke="#8B4513" stroke-width="8" stroke-dasharray="10,5" />
+            <!-- Level 2 to 3 -->
+            <line x1="210" y1="630" x2="310" y2="660" stroke="#8B4513" stroke-width="8" stroke-dasharray="10,5" />
+            <!-- Level 3 to 4 -->
+            <line x1="310" y1="660" x2="410" y2="710" stroke="#8B4513" stroke-width="8" stroke-dasharray="10,5" />
+            <!-- Level 4 to 5 -->
+            <line x1="410" y1="710" x2="510" y2="610" stroke="#8B4513" stroke-width="8" stroke-dasharray="10,5" />
+            <!-- Level 5 to 6 -->
+            <line x1="510" y1="610" x2="610" y2="510" stroke="#8B4513" stroke-width="8" stroke-dasharray="10,5" />
+            <!-- Level 6 to 7 -->
+            <line x1="610" y1="510" x2="710" y2="560" stroke="#8B4513" stroke-width="8" stroke-dasharray="10,5" />
+            <!-- Level 7 to 8 -->
+            <line x1="710" y1="560" x2="810" y2="610" stroke="#8B4513" stroke-width="8" stroke-dasharray="10,5" />
+            <!-- Level 8 to 9 -->
+            <line x1="810" y1="610" x2="910" y2="510" stroke="#8B4513" stroke-width="8" stroke-dasharray="10,5" />
+            <!-- Level 9 to 10 -->
+            <line x1="910" y1="510" x2="1010" y2="410" stroke="#8B4513" stroke-width="8" stroke-dasharray="10,5" />
+            <!-- Level 10 to 11 -->
+            <line x1="1010" y1="410" x2="1110" y2="460" stroke="#8B4513" stroke-width="8" stroke-dasharray="10,5" />
+            <!-- Level 11 to 12 -->
+            <line x1="1110" y1="460" x2="1210" y2="410" stroke="#8B4513" stroke-width="8" stroke-dasharray="10,5" />
         </svg>
         
         <!-- Level 1 -->
