@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل المكافآت</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #205c6b, #2a7a8a);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #10b981, #34d399);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #059669, #10b981);
+            transform: translateY(-2px);
+        }
+
+        .btn.back-btn {
+            background: linear-gradient(45deg, #6f42c1, #8e44ad);
+        }
+
+        .btn.back-btn:hover {
+            background: linear-gradient(45deg, #5a2d8a, #6f42c1);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            padding: 20px;
+        }
+
+        .bonus-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .bonus-table th {
+            background: linear-gradient(45deg, #205c6b, #2a7a8a);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+
+        .bonus-table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #ddd;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        .bonus-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .bonus-table tbody tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        .name-cell {
+            font-weight: bold;
+            color: #205c6b;
+            text-align: right;
+            padding-right: 20px;
+            background: #f0f8ff;
+        }
+
+        .bonus-cell {
+            position: relative;
+        }
+
+        .bonus-input {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .bonus-input:focus {
+            border-color: #205c6b;
+            outline: none;
+            box-shadow: 0 0 5px rgba(32, 92, 107, 0.3);
+        }
+
+        .bonus-header {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52) !important;
+        }
+
+        .bonus-header:nth-child(2) { background: linear-gradient(45deg, #4ecdc4, #44a08d) !important; }
+        .bonus-header:nth-child(3) { background: linear-gradient(45deg, #45b7d1, #96c93d) !important; }
+        .bonus-header:nth-child(4) { background: linear-gradient(45deg, #f9ca24, #f0932b) !important; }
+        .bonus-header:nth-child(5) { background: linear-gradient(45deg, #6c5ce7, #a29bfe) !important; }
+        .bonus-header:nth-child(6) { background: linear-gradient(45deg, #fd79a8, #fdcb6e) !important; }
+        .bonus-header:nth-child(7) { background: linear-gradient(45deg, #00b894, #00cec9) !important; }
+
+        @media (max-width: 768px) {
+            .bonus-table {
+                font-size: 12px;
+            }
+
+            .bonus-table th,
+            .bonus-table td {
+                padding: 10px 8px;
+            }
+
+            .bonus-input {
+                width: 60px;
+                font-size: 12px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+        }
+
+        .stats {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 2px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            margin: 5px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #205c6b;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .total-bonus {
+            font-weight: bold;
+            background: #e8f5e8 !important;
+            color: #2d5a27;
+        }
+
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="save-indicator" id="saveIndicator">تم الحفظ ✓</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>سجل المكافآت - رحلة القطار التعليمية</h1>
+            <p>إدارة وتتبع مكافآت المشاركين للمراحل الستة</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="loadBonusData()">تحديث البيانات</button>
+            <button class="btn" onclick="saveBonusData()">حفظ جميع المكافآت</button>
+            <button class="btn" onclick="resetAllBonuses()">مسح جميع المكافآت</button>
+            <a href="map4.html" class="btn back-btn">عودة للخريطة</a>
+            <span style="margin-right: auto; color: #666;">آخر تحديث: <span id="lastUpdate">-</span></span>
+        </div>
+
+        <div class="table-container">
+            <table class="bonus-table" id="bonusTable">
+                <thead>
+                    <tr>
+                        <th style="width: 200px;">الاسم</th>
+                        <th class="bonus-header">بونص 1</th>
+                        <th class="bonus-header">بونص 2</th>
+                        <th class="bonus-header">بونص 3</th>
+                        <th class="bonus-header">بونص 4</th>
+                        <th class="bonus-header">بونص 5</th>
+                        <th class="bonus-header">بونص 6</th>
+                        <th style="background: linear-gradient(45deg, #2d3748, #4a5568) !important;">الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody id="bonusTableBody">
+                    <!-- سيتم تعبئة البيانات من JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalUsers">0</div>
+                <div class="stat-label">إجمالي المشتركين</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="totalBonuses">0</div>
+                <div class="stat-label">إجمالي المكافآت الممنوحة</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="averageBonus">0</div>
+                <div class="stat-label">متوسط المكافآت</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="topPerformer">-</div>
+                <div class="stat-label">أعلى مكافآت</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // تحميل البيانات عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBonusData();
+        });
+
+        // تحميل بيانات المكافآت
+        function loadBonusData() {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const tableBody = document.getElementById('bonusTableBody');
+            tableBody.innerHTML = '';
+
+            let totalBonusesGranted = 0;
+            let totalBonusValue = 0;
+            let topPerformer = { name: '-', total: 0 };
+
+            users.forEach((user, index) => {
+                const row = document.createElement('tr');
+                
+                // عمود الاسم
+                const nameCell = document.createElement('td');
+                nameCell.className = 'name-cell';
+                nameCell.textContent = user.name;
+                row.appendChild(nameCell);
+
+                let userTotal = 0;
+
+                // أعمدة البونصات الستة
+                for (let i = 1; i <= 6; i++) {
+                    const bonusCell = document.createElement('td');
+                    bonusCell.className = 'bonus-cell';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'bonus-input';
+                    input.min = '0';
+                    input.step = '0.5';
+                    input.placeholder = '0';
+                    input.value = user[`bonus${i}`] || 0;
+                    input.id = `bonus_${user.email}_${i}`;
+                    
+                    // إضافة مستمع للتغيير للحفظ التلقائي
+                    input.addEventListener('input', function() {
+                        autoSave(user.email, i, this.value);
+                        updateRowTotal(user.email);
+                        updateStats();
+                    });
+                    
+                    bonusCell.appendChild(input);
+                    row.appendChild(bonusCell);
+                    
+                    userTotal += parseFloat(input.value) || 0;
+                }
+
+                // عمود الإجمالي
+                const totalCell = document.createElement('td');
+                totalCell.className = 'total-bonus';
+                totalCell.id = `total_${user.email}`;
+                totalCell.textContent = userTotal.toFixed(1);
+                row.appendChild(totalCell);
+
+                // تحديث إحصائيات أعلى أداء
+                if (userTotal > topPerformer.total) {
+                    topPerformer = { name: user.name, total: userTotal };
+                }
+
+                totalBonusValue += userTotal;
+                if (userTotal > 0) totalBonusesGranted++;
+
+                tableBody.appendChild(row);
+            });
+
+            // تحديث الإحصائيات
+            updateStats();
+            
+            // تحديث وقت آخر تحديث
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
+        }
+
+        // حفظ تلقائي للمكافأة
+        function autoSave(userEmail, bonusNumber, value) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.email === userEmail);
+            
+            if (userIndex !== -1) {
+                users[userIndex][`bonus${bonusNumber}`] = parseFloat(value) || 0;
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // إظهار مؤشر الحفظ
+                showSaveIndicator();
+            }
+        }
+
+        // تحديث إجمالي الصف
+        function updateRowTotal(userEmail) {
+            let total = 0;
+            for (let i = 1; i <= 6; i++) {
+                const input = document.getElementById(`bonus_${userEmail}_${i}`);
+                total += parseFloat(input.value) || 0;
+            }
+            
+            const totalCell = document.getElementById(`total_${userEmail}`);
+            if (totalCell) {
+                totalCell.textContent = total.toFixed(1);
+            }
+        }
+
+        // تحديث الإحصائيات
+        function updateStats() {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            let totalBonusesGranted = 0;
+            let totalBonusValue = 0;
+            let topPerformer = { name: '-', total: 0 };
+
+            users.forEach(user => {
+                let userTotal = 0;
+                for (let i = 1; i <= 6; i++) {
+                    userTotal += parseFloat(user[`bonus${i}`]) || 0;
+                }
+                
+                if (userTotal > 0) totalBonusesGranted++;
+                totalBonusValue += userTotal;
+                
+                if (userTotal > topPerformer.total) {
+                    topPerformer = { name: user.name, total: userTotal };
+                }
+            });
+
+            document.getElementById('totalUsers').textContent = users.length;
+            document.getElementById('totalBonuses').textContent = totalBonusValue.toFixed(1);
+            document.getElementById('averageBonus').textContent = users.length > 0 ? (totalBonusValue / users.length).toFixed(1) : '0';
+            document.getElementById('topPerformer').textContent = topPerformer.name;
+        }
+
+        // حفظ جميع بيانات المكافآت
+        function saveBonusData() {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            users.forEach(user => {
+                for (let i = 1; i <= 6; i++) {
+                    const input = document.getElementById(`bonus_${user.email}_${i}`);
+                    if (input) {
+                        user[`bonus${i}`] = parseFloat(input.value) || 0;
+                    }
+                }
+            });
+            
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            // إظهار رسالة نجح الحفظ
+            alert('تم حفظ جميع المكافآت بنجاح!');
+            loadBonusData();
+        }
+
+        // مسح جميع المكافآت
+        function resetAllBonuses() {
+            if (confirm('هل أنت متأكد من مسح جميع المكافآت؟ لا يمكن التراجع عن هذا الإجراء.')) {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                
+                users.forEach(user => {
+                    for (let i = 1; i <= 6; i++) {
+                        user[`bonus${i}`] = 0;
+                    }
+                });
+                
+                localStorage.setItem('users', JSON.stringify(users));
+                alert('تم مسح جميع المكافآت بنجاح!');
+                loadBonusData();
+            }
+        }
+
+        // إظهار مؤشر الحفظ
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 2000);
+        }
+
+        // إضافة مستمع لتحديث البيانات عند تغيير localStorage
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'users') {
+                loadBonusData();
+            }
+        });
+    </script>
+</body>
+</html>

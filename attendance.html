@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل الحضور والحجز</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #205c6b, #2a7a8a);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .refresh-btn, .save-btn {
+            background: linear-gradient(45deg, #10b981, #34d399);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover, .save-btn:hover {
+            background: linear-gradient(45deg, #059669, #10b981);
+            transform: translateY(-2px);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            padding: 20px;
+        }
+
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .attendance-table th {
+            background: linear-gradient(45deg, #205c6b, #2a7a8a);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .attendance-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+
+        .attendance-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .attendance-table tbody tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        .name-cell {
+            font-weight: bold;
+            color: #205c6b;
+            text-align: right;
+            padding-right: 15px;
+        }
+
+        .booking-cell {
+            background: #e8f5e8;
+            font-size: 12px;
+        }
+
+        .attendance-cell {
+            background: #fff3cd;
+        }
+
+        .attendance-select {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .attendance-select:focus {
+            border-color: #205c6b;
+            outline: none;
+        }
+
+        .attendance-select.present {
+            background: #d4edda;
+            border-color: #10b981;
+            color: #155724;
+        }
+
+        .attendance-select.absent {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .level-header {
+            background: linear-gradient(45deg, #6f42c1, #8e44ad) !important;
+            color: white;
+        }
+
+        .booking-date {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .no-booking {
+            color: #999;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .attendance-table {
+                font-size: 11px;
+            }
+
+            .attendance-table th,
+            .attendance-table td {
+                padding: 8px 5px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+        }
+
+        .stats {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 2px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            margin: 5px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #205c6b;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>سجل الحضور والحجز - رحلة القطار التعليمية</h1>
+            <p>متابعة حضور وحجوزات المشاركين في جميع المراحل الستة</p>
+        </div>
+
+        <div class="controls">
+            <button class="refresh-btn" onclick="loadBookings()">تحديث البيانات</button>
+            <button class="save-btn" onclick="saveAttendance()">حفظ سجل الحضور</button>
+            <button class="refresh-btn" onclick="window.location.href='bonus.html'" style="background: linear-gradient(45deg, #ff6b6b, #ee5a52);">المكافآت</button>
+            <button class="refresh-btn" onclick="window.location.href='map4.html'" style="background: linear-gradient(45deg, #6f42c1, #8e44ad);">عودة للخريطة</button>
+            <span style="margin-right: auto; color: #666;">آخر تحديث: <span id="lastUpdate">-</span></span>
+        </div>
+
+        <div class="table-container">
+            <table class="attendance-table" id="attendanceTable">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width: 150px;">الاسم</th>
+                        <th colspan="2" class="level-header">المرحلة الأولى</th>
+                        <th colspan="2" class="level-header">المرحلة الثانية</th>
+                        <th colspan="2" class="level-header">المرحلة الثالثة</th>
+                        <th colspan="2" class="level-header">المرحلة الرابعة</th>
+                        <th colspan="2" class="level-header">المرحلة الخامسة</th>
+                        <th colspan="2" class="level-header">المرحلة السادسة</th>
+                    </tr>
+                    <tr>
+                        <th style="width: 120px;">حجز</th>
+                        <th style="width: 100px;">حضور</th>
+                        <th style="width: 120px;">حجز</th>
+                        <th style="width: 100px;">حضور</th>
+                        <th style="width: 120px;">حجز</th>
+                        <th style="width: 100px;">حضور</th>
+                        <th style="width: 120px;">حجز</th>
+                        <th style="width: 100px;">حضور</th>
+                        <th style="width: 120px;">حجز</th>
+                        <th style="width: 100px;">حضور</th>
+                        <th style="width: 120px;">حجز</th>
+                        <th style="width: 100px;">حضور</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceTableBody">
+                    <!-- سيتم تعبئة البيانات من JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalUsers">0</div>
+                <div class="stat-label">إجمالي المشتركين</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="totalBookings">0</div>
+                <div class="stat-label">إجمالي الحجوزات</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="presentToday">0</div>
+                <div class="stat-label">الحضور اليوم</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // بيانات المراحل
+        const levels = [
+            { id: 1, name: "Introduction to Computing", date: "February 15, 2024" },
+            { id: 2, name: "Programming Fundamentals", date: "February 20, 2024" },
+            { id: 3, name: "Data Structures & Algorithms", date: "February 28, 2024" },
+            { id: 4, name: "Object-Oriented Programming", date: "March 5, 2024" },
+            { id: 5, name: "Web Development", date: "March 10, 2024" },
+            { id: 6, name: "Advanced Programming", date: "March 15, 2024" }
+        ];
+
+        // تحميل البيانات عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBookings();
+        });
+
+        // تحميل الحجوزات والمستخدمين
+        function loadBookings() {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const attendanceData = JSON.parse(localStorage.getItem('attendanceData') || '{}');
+            
+            const tableBody = document.getElementById('attendanceTableBody');
+            tableBody.innerHTML = '';
+
+            let totalBookings = 0;
+            let presentCount = 0;
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                
+                // عمود الاسم
+                const nameCell = document.createElement('td');
+                nameCell.className = 'name-cell';
+                nameCell.textContent = user.name;
+                row.appendChild(nameCell);
+
+                // إنشاء أعمدة للمراحل الست
+                levels.forEach(level => {
+                    // عمود الحجز
+                    const bookingCell = document.createElement('td');
+                    bookingCell.className = 'booking-cell';
+                    
+                    // البحث عن حجز هذا المستخدم لهذه المرحلة
+                    const booking = user.bookings && user.bookings.find(b => b.levelId == level.id);
+                    
+                    if (booking) {
+                        const bookingDate = new Date(booking.bookingDate || Date.now());
+                        bookingCell.innerHTML = `
+                            <div>✓ محجوز</div>
+                            <div class="booking-date">${bookingDate.toLocaleDateString('ar-EG')} - ${bookingDate.toLocaleTimeString('ar-EG', {hour: '2-digit', minute: '2-digit'})}</div>
+                        `;
+                        totalBookings++;
+                    } else {
+                        bookingCell.innerHTML = '<span class="no-booking">غير محجوز</span>';
+                    }
+                    row.appendChild(bookingCell);
+
+                    // عمود الحضور
+                    const attendanceCell = document.createElement('td');
+                    attendanceCell.className = 'attendance-cell';
+                    
+                    const select = document.createElement('select');
+                    select.className = 'attendance-select';
+                    select.id = `attendance_${user.email}_${level.id}`;
+                    
+                    // الخيارات
+                    const options = [
+                        { value: '', text: 'لم يحدد' },
+                        { value: 'present', text: 'حاضر' },
+                        { value: 'absent', text: 'غائب' }
+                    ];
+                    
+                    options.forEach(option => {
+                        const opt = document.createElement('option');
+                        opt.value = option.value;
+                        opt.textContent = option.text;
+                        select.appendChild(opt);
+                    });
+
+                    // تحديد القيمة المحفوظة
+                    const savedAttendance = attendanceData[`${user.email}_${level.id}`];
+                    if (savedAttendance) {
+                        select.value = savedAttendance;
+                        select.className = `attendance-select ${savedAttendance}`;
+                        if (savedAttendance === 'present') presentCount++;
+                    }
+
+                    // إضافة مستمع للتغيير
+                    select.addEventListener('change', function() {
+                        this.className = `attendance-select ${this.value}`;
+                        saveAttendance();
+                    });
+
+                    attendanceCell.appendChild(select);
+                    row.appendChild(attendanceCell);
+                });
+
+                tableBody.appendChild(row);
+            });
+
+            // تحديث الإحصائيات
+            updateStats(users.length, totalBookings, presentCount);
+            
+            // تحديث وقت آخر تحديث
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
+        }
+
+        // حفظ بيانات الحضور
+        function saveAttendance() {
+            const attendanceData = {};
+            const selects = document.querySelectorAll('.attendance-select');
+            
+            selects.forEach(select => {
+                if (select.value) {
+                    attendanceData[select.id.replace('attendance_', '')] = select.value;
+                }
+            });
+            
+            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+            
+            // إظهار رسالة نجح الحفظ
+            const saveBtn = document.querySelector('.save-btn');
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = 'تم الحفظ ✓';
+            saveBtn.style.background = 'linear-gradient(45deg, #10b981, #34d399)';
+            
+            setTimeout(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.style.background = '';
+            }, 2000);
+        }
+
+        // تحديث الإحصائيات
+        function updateStats(totalUsers, totalBookings, presentCount) {
+            document.getElementById('totalUsers').textContent = totalUsers;
+            document.getElementById('totalBookings').textContent = totalBookings;
+            document.getElementById('presentToday').textContent = presentCount;
+        }
+
+        // محاكاة إضافة حجز جديد (يتم استدعاؤها من map4.html عند الحجز)
+        function addBooking(userEmail, levelId, levelName) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.email === userEmail);
+            
+            if (userIndex !== -1) {
+                if (!users[userIndex].bookings) {
+                    users[userIndex].bookings = [];
+                }
+                
+                // التحقق من عدم وجود حجز مسبق لنفس المرحلة
+                const existingBooking = users[userIndex].bookings.find(b => b.levelId == levelId);
+                if (!existingBooking) {
+                    users[userIndex].bookings.push({
+                        levelId: levelId,
+                        name: levelName,
+                        bookingDate: new Date().toISOString(),
+                        date: levels.find(l => l.id == levelId)?.date || '',
+                        time: '09:00'
+                    });
+                    
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+            }
+        }
+
+        // إضافة مستمع لتحديث البيانات عند تغيير localStorage
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'users') {
+                loadBookings();
+            }
+        });
+    </script>
+</body>
+</html>

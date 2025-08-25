@@ -600,6 +600,15 @@
         <button class="control-btn" id="playPauseBtn" onclick="togglePlayPause()" title="Play/Pause">
             ⏸️
         </button>
+        <button class="control-btn" onclick="window.location.href='attendance.html'" title="سجل الحضور">
+            📋
+        </button>
+        <button class="control-btn" onclick="window.location.href='bonus.html'" title="المكافآت">
+            🎁
+        </button>
+        <button class="control-btn" onclick="window.location.href='profile.html'" title="الملف الشخصي">
+            👤
+        </button>
     </div>
 
     <script>
@@ -670,6 +679,14 @@
             // Prevent the station click event from firing
             event.stopPropagation();
             
+            // Check if user is logged in
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                alert('يجب تسجيل الدخول أولاً لإجراء الحجز');
+                window.location.href = 'index.html';
+                return;
+            }
+            
             // Get level information
             const levelNames = {
                 1: "Introduction to Computing",
@@ -682,13 +699,56 @@
             
             const levelName = levelNames[levelNumber];
             
+            // Check if already booked
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.email === currentUser);
+            
+            if (user && user.bookings) {
+                const existingBooking = user.bookings.find(b => b.levelId == levelNumber);
+                if (existingBooking) {
+                    alert(`لقد قمت بحجز "${levelName}" مسبقاً في ${new Date(existingBooking.bookingDate).toLocaleDateString('ar-EG')}`);
+                    return;
+                }
+            }
+            
             // Show booking confirmation
-            if (confirm(`Book "${levelName}" (Level ${levelNumber})?\n\nThis will redirect you to the booking page.`)) {
-                // Here you would typically redirect to a booking page or open a booking modal
-                alert(`Booking confirmed for Level ${levelNumber}: ${levelName}!\n\nYou will be redirected to the payment page.`);
+            if (confirm(`حجز "${levelName}" (المرحلة ${levelNumber})؟\n\nسيتم تسجيل الحجز تلقائياً في النظام.`)) {
+                // Add booking to user's record
+                addBookingToUser(currentUser, levelNumber, levelName);
                 
-                // Example: Redirect to booking page
-                // window.location.href = `/book?level=${levelNumber}`;
+                // Show success message
+                alert(`تم تأكيد الحجز للمرحلة ${levelNumber}: ${levelName}!\n\nيمكنك مراجعة حجوزاتك في الملف الشخصي.`);
+            }
+        }
+
+        // Add booking to user's record
+        function addBookingToUser(userEmail, levelId, levelName) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(u => u.email === userEmail);
+            
+            if (userIndex !== -1) {
+                if (!users[userIndex].bookings) {
+                    users[userIndex].bookings = [];
+                }
+                
+                const levelDates = {
+                    1: "February 15, 2024",
+                    2: "February 20, 2024",
+                    3: "February 28, 2024",
+                    4: "March 5, 2024",
+                    5: "March 10, 2024",
+                    6: "March 15, 2024"
+                };
+                
+                users[userIndex].bookings.push({
+                    levelId: levelId,
+                    name: levelName,
+                    bookingDate: new Date().toISOString(),
+                    date: levelDates[levelId],
+                    time: '09:00'
+                });
+                
+                localStorage.setItem('users', JSON.stringify(users));
             }
         }
 
