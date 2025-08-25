@@ -180,10 +180,11 @@
             z-index: 10;
             transform: rotate(-90deg);
             transform-origin: center;
-            transition: animation-duration 0.5s ease;
+            transition: bottom 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
+            bottom: calc(100vh - (100vh * var(--progress-ratio, 0)));
         }
 
         .wagon,
@@ -297,8 +298,35 @@
             touch-action: manipulation;
         }
 
-        .station:hover,
-        .station:active {
+        .station.locked {
+            background: linear-gradient(45deg, #f8d7da, #f5c6cb);
+            border-color: #dc3545;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .station.locked .station-label {
+            color: #dc3545;
+        }
+
+        .station.locked::after {
+            content: '🔒';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 12px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .station:not(.locked):hover,
+        .station:not(.locked):active {
             transform: scale(1.1);
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
@@ -449,8 +477,8 @@
         }
 
         @keyframes voyageVertical {
-            0% { bottom: -200px; }
-            100% { bottom: 100vh; }
+            0% { bottom: calc(100vh - (100vh * 0)); }
+            100% { bottom: calc(100vh - (100vh * var(--max-progress-ratio, 1))); }
         }
 
         @keyframes spin {
@@ -463,7 +491,7 @@
         }
 
         .train.moving {
-            animation: voyageVertical var(--journey-duration, 20s) linear infinite;
+            animation: voyageVertical var(--journey-duration, s) linear infinite;
         }
 
         /* Mobile landscape adjustments */
@@ -517,111 +545,219 @@
         
         <!-- Stations positioned vertically -->
         <div class="stations">
-            <div class="station" style="top: 5%;" data-station="6" onclick="toggleLevelInfo(6)">
-                <span class="station-label">6</span>
-                <div class="level-info" id="level-info-6">
-                    <button class="close-btn" onclick="closeLevelInfo(6, event)">×</button>
+            <div class="station" style="top: 5%;" data-station="1" onclick="toggleLevelInfo(1)">
+                <span class="station-label">1</span>
+                <div class="level-info" id="level-info-1">
+                    <button class="close-btn" onclick="closeLevelInfo(1, event)">×</button>
                     <h3>Advanced Programming</h3>
                     <p class="description">Master advanced algorithms, data structures, and design patterns</p>
                     <p class="date">Date: March 15, 2024</p>
                     <p class="tickets">Available Tickets: 25</p>
-                    <button class="booking-btn" onclick="bookLevel(6, event)">Book Now</button>
+                    <button class="booking-btn" onclick="bookLevel(1, event)">Book Now</button>
                 </div>
             </div>
-            <div class="station" style="top: 20%;" data-station="5" onclick="toggleLevelInfo(5)">
-                <span class="station-label">5</span>
-                <div class="level-info" id="level-info-5">
-                    <button class="close-btn" onclick="closeLevelInfo(5, event)">×</button>
+            <div class="station" style="top: 20%;" data-station="2" onclick="toggleLevelInfo(2)">
+                <span class="station-label">2</span>
+                <div class="level-info" id="level-info-2">
+                    <button class="close-btn" onclick="closeLevelInfo(2, event)">×</button>
                     <h3>Web Development</h3>
                     <p class="description">Learn modern web technologies including React, Node.js, and databases</p>
                     <p class="date">Date: March 10, 2024</p>
                     <p class="tickets">Available Tickets: 18</p>
-                    <button class="booking-btn" onclick="bookLevel(5, event)">Book Now</button>
+                    <button class="booking-btn" onclick="bookLevel(2, event)">Book Now</button>
                 </div>
             </div>
-            <div class="station" style="top: 35%;" data-station="4" onclick="toggleLevelInfo(4)">
-                <span class="station-label">4</span>
-                <div class="level-info" id="level-info-4">
-                    <button class="close-btn" onclick="closeLevelInfo(4, event)">×</button>
+            <div class="station" style="top: 35%;" data-station="3" onclick="toggleLevelInfo(3)">
+                <span class="station-label">3</span>
+                <div class="level-info" id="level-info-3">
+                    <button class="close-btn" onclick="closeLevelInfo(3, event)">×</button>
                     <h3>Object-Oriented Programming</h3>
                     <p class="description">Understand OOP principles, inheritance, polymorphism, and encapsulation</p>
                     <p class="date">Date: March 5, 2024</p>
                     <p class="tickets limited">Available Tickets: 5</p>
-                    <button class="booking-btn" onclick="bookLevel(4, event)">Book Now</button>
+                    <button class="booking-btn" onclick="bookLevel(3, event)">Book Now</button>
                 </div>
             </div>
-            <div class="station" style="top: 50%;" data-station="3" onclick="toggleLevelInfo(3)">
-                <span class="station-label">3</span>
-                <div class="level-info" id="level-info-3">
-                    <button class="close-btn" onclick="closeLevelInfo(3, event)">×</button>
+            <div class="station" style="top: 50%;" data-station="4" onclick="toggleLevelInfo(4)">
+                <span class="station-label">4</span>
+                <div class="level-info" id="level-info-4">
+                    <button class="close-btn" onclick="closeLevelInfo(4, event)">×</button>
                     <h3>Data Structures & Algorithms</h3>
                     <p class="description">Explore arrays, linked lists, trees, sorting, and searching algorithms</p>
                     <p class="date">Date: February 28, 2024</p>
                     <p class="tickets">Available Tickets: 32</p>
-                    <button class="booking-btn" onclick="bookLevel(3, event)">Book Now</button>
+                    <button class="booking-btn" onclick="bookLevel(4, event)">Book Now</button>
                 </div>
             </div>
-            <div class="station" style="top: 70%;" data-station="2" onclick="toggleLevelInfo(2)">
-                <span class="station-label">2</span>
-                <div class="level-info" id="level-info-2">
-                    <button class="close-btn" onclick="closeLevelInfo(2, event)">×</button>
+            <div class="station" style="top: 70%;" data-station="5" onclick="toggleLevelInfo(5)">
+                <span class="station-label">5</span>
+                <div class="level-info" id="level-info-5">
+                    <button class="close-btn" onclick="closeLevelInfo(5, event)">×</button>
                     <h3>Programming Fundamentals</h3>
                     <p class="description">Learn basic programming concepts, variables, loops, and functions</p>
                     <p class="date">Date: February 20, 2024</p>
                     <p class="tickets">Available Tickets: 45</p>
-                    <button class="booking-btn" onclick="bookLevel(2, event)">Book Now</button>
+                    <button class="booking-btn" onclick="bookLevel(5, event)">Book Now</button>
                 </div>
             </div>
-            <div class="station" style="top: 90%;" data-station="1" onclick="toggleLevelInfo(1)">
-                <span class="station-label">1</span>
-                <div class="level-info" id="level-info-1">
-                    <button class="close-btn" onclick="closeLevelInfo(1, event)">×</button>
+            <div class="station" style="top: 90%;" data-station="6" onclick="toggleLevelInfo(6)">
+                <span class="station-label">6</span>
+                <div class="level-info" id="level-info-6">
+                    <button class="close-btn" onclick="closeLevelInfo(6, event)">×</button>
                     <h3>Introduction to Computing</h3>
                     <p class="description">Basic computer concepts, introduction to programming logic</p>
                     <p class="date">Date: February 15, 2024</p>
                     <p class="tickets limited">Available Tickets: 8</p>
-                    <button class="booking-btn" onclick="bookLevel(1, event)">Book Now</button>
+                    <button class="booking-btn" onclick="bookLevel(6, event)">Book Now</button>
                 </div>
             </div>
         </div>
         
-        <div class="train moving" id="train">
-            <div class="wagon"></div>
-            <div class="wagon"></div>
-            <div class="wagon"></div>
+        <div class="train" id="train">
             <div class="locomotive">
                 <div class="cabin"></div>
                 <div class="chimney"></div>
             </div>
+            <div class="wagon"></div>
+            <div class="wagon"></div>
+            <div class="wagon"></div>
         </div>
     </section>
 
-    <div class="controls">
-        <button class="control-btn" id="playPauseBtn" onclick="togglePlayPause()" title="Play/Pause">
-            ⏸️
-        </button>
-        <button class="control-btn" onclick="window.location.href='attendance.html'" title="سجل الحضور">
-            📋
-        </button>
-        <button class="control-btn" onclick="window.location.href='bonus.html'" title="المكافآت">
-            🎁
-        </button>
-        <button class="control-btn" onclick="window.location.href='lockLevels.html'" title="التحكم في المراحل">
-            🔐
-        </button>
-        <button class="control-btn" onclick="window.location.href='profile.html'" title="الملف الشخصي">
-            👤
-        </button>
-    </div>
+
+
 
     <script>
         let isPlaying = true;
         let currentStation = 1;
         let journeyProgress = 0;
+        let maxAllowedStation = 6; // Default to all stations accessible
+        // Train speed control (multiplier). 1 = normal speed
+        let trainSpeed = 8;
+        const BASE_PROGRESS_INCREMENT = 100 / (20 * 60); // existing base increment per tick
+    // Debug mode
+    let debugMode = false;
+    let lastLoggedStation = null;
+
+        /**
+         * Adjust the train speed.
+         * @param {number} multiplier - Desired speed multiplier (e.g. 0.5 slow, 1 normal, 2 double speed)
+         * Values are clamped between 0 (stops movement) and 5 (max 5x).
+         */
+        function setTrainSpeed(multiplier) {
+            if (typeof multiplier !== 'number' || isNaN(multiplier)) return;
+            // Clamp
+            trainSpeed = Math.max(0, Math.min(5, multiplier));
+            // Update wheel spin animation speed (inverse relation)
+            // Base spin is 2s at 1x; faster speed -> shorter duration.
+            const baseSpinSeconds = 2;
+            const spinDuration = trainSpeed === 0 ? '0s' : (baseSpinSeconds / trainSpeed).toFixed(2) + 's';
+            train.style.setProperty('--spin-speed', spinDuration);
+        }
+
+        // Optional helpers (not required but handy if you want incremental control)
+        function increaseTrainSpeed(step = 0.25) { setTrainSpeed(trainSpeed + step); }
+        function decreaseTrainSpeed(step = 0.25) { setTrainSpeed(trainSpeed - step); }
         
         const train = document.getElementById('train');
         const playPauseBtn = document.getElementById('playPauseBtn');
         const progressBar = document.getElementById('progressBar');
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMaxAllowedStation();
+            updateTrainPosition();
+            
+            // Set initial train position to station 1
+            if (journeyProgress === 0) {
+                journeyProgress = 10; // Start at station 1 position
+                const progressRatio = journeyProgress / 100;
+                train.style.setProperty('--progress-ratio', progressRatio);
+                progressBar.style.width = `${(journeyProgress / 95) * 100}%`;
+            }
+        });
+
+        // Function to get the highest accessible station for current user's team
+        function updateMaxAllowedStation() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                maxAllowedStation = 6; // Default all open if no user
+                updateStationVisuals();
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.email === currentUser);
+            
+            if (!user || !user.team) {
+                maxAllowedStation = 6; // Default all open if no team
+                updateStationVisuals();
+                return;
+            }
+
+            // Find the last consecutive accessible station starting from level 1
+            maxAllowedStation = 1; // Start with level 1 as minimum
+            
+            // Check each level consecutively from 1 upward
+            for (let station = 1; station <= 6; station++) {
+                if (canAccessLevel(user.team, station)) {
+                    maxAllowedStation = station; // Update to this station if accessible
+                } else {
+                    // Stop at first locked station - don't go beyond it
+                    break;
+                }
+            updateStationVisuals();
+            }
+        }
+
+        // Function to update station visual appearance based on lock status
+        function updateStationVisuals() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) return;
+
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.email === currentUser);
+            
+            if (!user || !user.team) return;
+
+            // Update each station's appearance
+            for (let station = 1; station <= 6; station++) {
+                const stationElement = document.querySelector(`[data-station="${station}"]`);
+                if (stationElement) {
+                    const isAccessible = canAccessLevel(user.team, station);
+                    if (isAccessible) {
+                        stationElement.classList.remove('locked');
+                    } else {
+                        stationElement.classList.add('locked');
+                    }
+                }
+            }
+        }
+
+        // Function to update train position based on accessible stations
+        function updateTrainPosition() {
+            // Map stations to their exact positions (from bottom of screen)
+            const stationPositions = {
+                1: 10,   // Station 1 at 90% from top = 10% from bottom
+                2: 20,   // Station 2 at 70% from top = 30% from bottom  
+                3: 33,   // Station 3 at 50% from top = 50% from bottom
+                4: 48,   // Station 4 at 35% from top = 65% from bottom
+                5: 68,   // Station 5 at 20% from top = 80% from bottom
+                6: 90    // Station 6 at 5% from top = 95% from bottom
+            };
+            
+            const targetPosition = stationPositions[maxAllowedStation];
+            
+            // If current progress exceeds max allowed, reset to max allowed station position
+            if (journeyProgress > targetPosition) {
+                journeyProgress = targetPosition;
+                progressBar.style.width = `${(journeyProgress / 95) * 100}%`; // Normalize progress bar
+                
+                // Update train position to exact station position
+                const progressRatio = journeyProgress / 100;
+                train.style.setProperty('--progress-ratio', progressRatio);
+            }
+        }
 
 
 
@@ -663,6 +799,13 @@
                     alert('هذه المرحلة مغلقة حالياً لفريقك. يرجى المحاولة لاحقاً.');
                     return;
                 }
+            }
+            
+            // Check if station element is locked (visual check)
+            const stationElement = document.querySelector(`[data-station="${levelNumber}"]`);
+            if (stationElement && stationElement.classList.contains('locked')) {
+                alert('هذه المرحلة مغلقة حالياً. لا يمكن الوصول إليها.');
+                return;
             }
             
             // Close all other level info panels first
@@ -776,12 +919,46 @@
         }
 
         function updateProgress() {
-            journeyProgress = Math.min(100, journeyProgress + (100 / (20 * 60)));
-            progressBar.style.width = `${journeyProgress}%`;
+            // Map stations to their exact positions (from bottom of screen)
+            const stationPositions = {
+                1: 10,   // Station 1 at 90% from top = 10% from bottom
+                2: 20,   // Station 2 at 70% from top = 30% from bottom  
+                3: 33,   // Station 3 at 50% from top = 50% from bottom
+                4: 48,   // Station 4 at 35% from top = 65% from bottom
+                5: 68,   // Station 5 at 20% from top = 80% from bottom
+                6: 90    // Station 6 at 5% from top = 95% from bottom
+            };
             
-            if (journeyProgress >= 100) {
-                journeyProgress = 0;
+            const targetPosition = stationPositions[maxAllowedStation];
+            const maxProgressForStation = targetPosition;
+            
+            // Only increase progress if we haven't reached the max allowed station
+            if (journeyProgress < maxProgressForStation) {
+                // Apply speed multiplier; speed 0 freezes movement
+                const increment = BASE_PROGRESS_INCREMENT * trainSpeed;
+                if (increment > 0) {
+                    journeyProgress = Math.min(maxProgressForStation, journeyProgress + increment);
+                }
+                progressBar.style.width = `${(journeyProgress / 95) * 100}%`; // Normalize progress bar to 100%
+                
+                // Update train position to exact station position
+                const progressRatio = journeyProgress / 100;
+                train.style.setProperty('--progress-ratio', progressRatio);
             }
+            
+            // If we've reached the maximum allowed station, pause the train
+            if (journeyProgress >= maxProgressForStation && isPlaying) {
+                // Stop exactly at last allowed station and auto-pause (no return)
+                journeyProgress = maxProgressForStation;
+                const progressRatio = journeyProgress / 100;
+                train.style.setProperty('--progress-ratio', progressRatio);
+                progressBar.style.width = `${(journeyProgress / 95) * 100}%`;
+                isPlaying = false;
+                playPauseBtn.innerHTML = '▶️';
+                playPauseBtn.classList.add('active');
+            }
+            
+            // Removed reset-on-final-level logic: train now stays at last station
         }
 
         // Update progress periodically
@@ -790,13 +967,30 @@
         // Auto-update stations based on train position
         setInterval(() => {
             if (isPlaying) {
-                const progress = (journeyProgress / 100) * 6;
-                const nearestStation = Math.max(1, Math.min(6, Math.round(progress)));
+                // Map progress to station based on position ranges
+                let nearestStation = 1;
+                if (journeyProgress >= 85) nearestStation = 6;
+                else if (journeyProgress >= 72.5) nearestStation = 5;
+                else if (journeyProgress >= 57.5) nearestStation = 4;
+                else if (journeyProgress >= 40) nearestStation = 3;
+                else if (journeyProgress >= 20) nearestStation = 2;
+                else nearestStation = 1;
+                
+                // Don't exceed max allowed station
+                nearestStation = Math.min(nearestStation, maxAllowedStation);
+                
                 if (nearestStation !== currentStation) {
                     currentStation = nearestStation;
+                    handleStationArrival(currentStation);
                 }
             }
         }, 1000);
+
+        // Update max allowed station when level settings change  
+        setInterval(() => {
+            updateMaxAllowedStation();
+            updateTrainPosition();
+        }, 2000);
 
         // Function to check if user's team can access a level
         function canAccessLevel(userTeam, levelId) {
@@ -823,6 +1017,39 @@
                 // Recalculate positions if needed
             }, 100);
         });
+
+        // Debug utilities
+        function toggleDebugMode(){
+            debugMode = !debugMode;
+            document.getElementById('trainDebugPanel').style.display = debugMode ? 'block':'none';
+            document.getElementById('debugToggleBtn').classList.toggle('active', debugMode);
+            if(debugMode){ logDebug('--- DEBUG ENABLED ---'); handleStationArrival(currentStation,true); }
+        }
+        function logDebug(msg){
+            if(!debugMode) return;
+            const logBox = document.getElementById('debugLog');
+            const time = new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            line.textContent = `[${time}] ${msg}`;
+            logBox.prepend(line); // newest on top
+            // Limit lines
+            while(logBox.children.length > 120){ logBox.removeChild(logBox.lastChild); }
+        }
+        function clearDebugPanel(){
+            const logBox = document.getElementById('debugLog');
+            logBox.innerHTML='';
+            logDebug('Cleared');
+        }
+        function handleStationArrival(station,force=false){
+            if(!force && station === lastLoggedStation) return; // avoid duplicates
+            lastLoggedStation = station;
+            const stationNames = {1:'Intro',2:'Fundamentals',3:'DSA',4:'OOP',5:'Web',6:'Advanced'};
+            logDebug(`Arrived station ${station} (${stationNames[station]||'?'}) progress=${journeyProgress.toFixed(2)} allowed<=${maxAllowedStation}`);
+            // Extra console output for dev tools
+            if(debugMode){
+                console.debug('[TrainArrival]',{station,name:stationNames[station],journeyProgress,maxAllowedStation,speed:trainSpeed});
+            }
+        }
     </script>
 </body>
 </html>
