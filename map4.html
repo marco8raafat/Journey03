@@ -309,30 +309,6 @@
             font-weight: bold;
         }
 
-        .station.visited {
-            background: linear-gradient(45deg, #10b981, #34d399);
-            border-color: #059669;
-        }
-
-        .station.visited .station-label {
-            color: white;
-        }
-
-        .station.current {
-            animation: currentStation 2s infinite;
-        }
-
-        @keyframes currentStation {
-            0%, 100% { 
-                border-color: #205c6b; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
-            }
-            50% { 
-                border-color: #ff6b6b; 
-                box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4); 
-            }
-        }
-
         /* Progress bar */
         .progress-container {
             position: fixed;
@@ -499,20 +475,7 @@
 
 
         function selectStation(stationNumber) {
-            // Mark stations as visited
-            document.querySelectorAll('.station').forEach(station => {
-                const num = parseInt(station.dataset.station);
-                station.classList.remove('current');
-                
-                if (num <= stationNumber) {
-                    station.classList.add('visited');
-                } else {
-                    station.classList.remove('visited');
-                }
-            });
-            
-            // Mark current station
-            document.querySelector(`[data-station="${stationNumber}"]`).classList.add('current');
+            // Simply set the current station number
             currentStation = stationNumber;
             
             // Haptic feedback on mobile
@@ -539,7 +502,7 @@
                 const progress = (journeyProgress / 100) * 6;
                 const nearestStation = Math.max(1, Math.min(6, Math.round(progress)));
                 if (nearestStation !== currentStation) {
-                    selectStation(nearestStation);
+                    currentStation = nearestStation;
                 }
             }
         }, 1000);
