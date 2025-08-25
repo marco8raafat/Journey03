@@ -11,11 +11,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Show/hide token field based on role
     roleSelect.addEventListener('change', () => {
-        if (roleSelect.value === 'admin') {
+        const isAdmin = roleSelect.value === 'admin';
+        if (isAdmin) {
             adminTokenWrapper.style.display = 'block';
+            requestAnimationFrame(() => adminTokenWrapper.classList.add('show'));
             adminTokenInput.required = true;
         } else {
-            adminTokenWrapper.style.display = 'none';
+            adminTokenWrapper.classList.remove('show');
+            setTimeout(()=>{ adminTokenWrapper.style.display = 'none'; }, 350);
             adminTokenInput.required = false;
             adminTokenInput.value = '';
         }

@@ -1,42 +1,126 @@
+/* Mobile-first enhanced login styling */
 body {
     background-image: url('WhatsApp Image 2025-08-25 at 02.50.44_866e3f72.jpg');
     background-size: cover;
+    background-position: center;
     background-repeat: no-repeat;
     font-family: 'Cairo', Arial, sans-serif;
     direction: rtl;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: clamp(14px, 4vh, 46px) 14px env(safe-area-inset-bottom);
+    -webkit-font-smoothing: antialiased;
 }
+
+body::before { /* readability overlay */
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.6));
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: -1;
+}
+
 .container {
-    background: rgba(255,255,255,0.85);
-    max-width: 350px;
-    margin: 80px auto;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px #aaa;
+    width: 100%;
+    max-width: 420px;
+    background: rgba(255,255,255,0.94);
+    padding: clamp(22px, 4vh, 38px) clamp(20px, 5vw, 34px) 34px;
+    border-radius: 20px;
+    box-shadow: 0 6px 32px -10px rgba(0,0,0,0.35);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    position: relative;
+    animation: fadeLogin .6s cubic-bezier(.18,.84,.36,1) both;
     text-align: right;
 }
-label {
-    display: block;
-    margin-top: 15px;
-}
+
+@keyframes fadeLogin {from {opacity:0; transform: translateY(28px) scale(.96);} to {opacity:1; transform: translateY(0) scale(1);} }
+
+h2 {margin:0 0 14px; font-size: clamp(22px, 5.2vw, 32px); text-align:center; color:#3b2f22; letter-spacing:.5px;}
+
+form {margin-top: 4px;}
+
+label {display:block; margin:20px 0 6px; font-size:14px; font-weight:600; color:#4a4135; letter-spacing:.3px;}
+
 input {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    width: 96%;
+    padding: 13px 15px;
+    border: 1.5px solid #c9b8a7;
+    border-radius: 12px;
+    background:#fffdfa;
+    font-size:15px;
+    outline:none;
+    transition: border-color .25s, box-shadow .25s, background .3s;
 }
+
+input:focus {border-color:#a67c52; box-shadow:0 0 0 3px rgba(166,124,82,0.25); background:#ffffff;}
+
 button {
-    margin-top: 20px;
-    width: 100%;
-    padding: 10px;
-    background: #a67c52;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
+    margin-top:30px;
+    width:100%;
+    padding:15px 18px;
+    background:linear-gradient(135deg,#a67c52,#c18d5c);
+    color:#fff;
+    border:none;
+    border-radius:14px;
+    font-size:17px;
+    font-weight:600;
+    cursor:pointer;
+    letter-spacing:.6px;
+    box-shadow:0 5px 16px -6px rgba(0,0,0,0.35);
+    transition:transform .25s, box-shadow .25s, background .4s;
+    touch-action:manipulation;
 }
-a {
-    color: #a67c52;
-    text-decoration: underline;
+button:active {transform:scale(.96);} 
+button:hover {box-shadow:0 7px 22px -8px rgba(0,0,0,0.45);} 
+button:focus-visible {outline:3px solid #704e28; outline-offset:4px;}
+
+p {margin-top:26px; text-align:center; font-size:14px; color:#3f3529;}
+a {color:#8d612f; text-decoration:underline; font-weight:600;}
+a:active {opacity:.75;}
+
+/* Small phones */
+@media (max-width: 480px){
+    body {padding:18px 14px calc(20px + env(safe-area-inset-bottom));}
+    .container {padding:24px 18px 32px; border-radius:18px;}
+    input {font-size:14.5px; padding:12px 13px;}
+    button {font-size:16px; padding:14px 16px;}
+    label {margin-top:18px; font-size:13px;}
+    p {font-size:13px;}
+}
+
+/* Ultra narrow */
+@media (max-width:330px){
+    h2 {font-size:24px;}
+    button {padding:13px 14px;}
+}
+
+/* Landscape short heights */
+@media (max-height:540px) and (orientation:landscape){
+    body {align-items:stretch; padding:14px 20px;}
+    .container {max-width:560px; display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+    form {grid-column:1 / -1;}
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark){
+    body::before {background:linear-gradient(180deg,rgba(0,0,0,0.55),rgba(0,0,0,0.85));}
+    .container {background:rgba(34,34,34,0.9); box-shadow:0 6px 34px -10px rgba(0,0,0,0.6);}    
+    h2 {color:#f8f5f1;}
+    label {color:#ddd0c3;}
+    input {background:#2b2723; border-color:#51463b; color:#f4ede6;}
+    input:focus {border-color:#cfa572; box-shadow:0 0 0 3px rgba(207,165,114,0.35); background:#332e2a;}
+    button {background:linear-gradient(135deg,#b27b3b,#d19a5c);}    
+    p {color:#d6c9bb;}
+    a {color:#e1b278;}
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce){
+    * {animation:none !important; transition:none !important;}
 }

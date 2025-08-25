@@ -1,42 +1,148 @@
+/* Base layout */
 body {
     background-image: url('WhatsApp Image 2025-08-25 at 02.50.44_866e3f72.jpg');
     background-size: cover;
+    background-position: center;
     background-repeat: no-repeat;
     font-family: 'Cairo', Arial, sans-serif;
     direction: rtl;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: clamp(12px, 4vh, 40px) 12px env(safe-area-inset-bottom);
 }
+
+body::before { /* subtle overlay for readability */
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.55));
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: -1;
+}
+
 .container {
-    background: rgba(255,255,255,0.85);
-    max-width: 400px;
-    margin: 60px auto;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px #aaa;
-    text-align: right;
+    width: 100%;
+    max-width: 440px;
+    background: rgba(255,255,255,0.92);
+    padding: clamp(20px, 4vh, 36px) clamp(18px, 5vw, 32px);
+    border-radius: 18px;
+    box-shadow: 0 6px 30px -8px rgba(0,0,0,0.25);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    position: relative;
+    animation: fadeSlide .55s cubic-bezier(.16,.84,.44,1) both;
 }
+
+@keyframes fadeSlide {
+  from {opacity:0; transform: translateY(25px) scale(.97);}
+  to {opacity:1; transform: translateY(0) scale(1);}
+}
+
+h2 {margin: 0 0 10px; font-size: clamp(20px, 5vw, 30px); color:#3b2f22; text-align:center;}
+
+form {margin-top: 6px;}
+
 label {
     display: block;
-    margin-top: 15px;
+    margin: 18px 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color:#4a4135;
+    letter-spacing:.3px;
 }
+
 input, select {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    width: 95%;
+    padding: 12px 14px;
+    border: 1.5px solid #c9b8a7;
+    border-radius: 10px;
+    font-size: 15px;
+    background: #fffdfa;
+    outline: none;
+    line-height: 1.2;
+    transition: border-color .25s, box-shadow .25s, background .3s;
 }
+
+input:focus, select:focus {
+    border-color: #a67c52;
+    box-shadow: 0 0 0 3px rgba(166,124,82,0.25);
+    background:#ffffff;
+}
+
+/* Better tap targets */
 button {
-    margin-top: 20px;
+    margin-top: 26px;
     width: 100%;
-    padding: 10px;
-    background: #a67c52;
+    padding: 14px 18px;
+    background: linear-gradient(135deg,#a67c52,#c18d5c);
     color: #fff;
     border: none;
-    border-radius: 5px;
-    font-size: 16px;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 600;
     cursor: pointer;
+    letter-spacing: .5px;
+    box-shadow: 0 4px 14px -4px rgba(0,0,0,0.3);
+    transition: transform .25s, box-shadow .25s, background .4s;
+    position: relative;
+    touch-action: manipulation;
 }
-a {
-    color: #a67c52;
-    text-decoration: underline;
+
+button:active {transform: scale(.96);} 
+button:hover {box-shadow:0 6px 20px -6px rgba(0,0,0,0.4);} 
+button:focus-visible {outline:3px solid #704e28; outline-offset:3px;}
+
+/* Link styling */
+p {margin-top: 24px; font-size: 14px; text-align:center; color:#3f3529;}
+a {color: #8d612f; text-decoration: underline; font-weight:600;}
+a:active {opacity:.75;}
+
+/* Admin token reveal animation */
+#adminTokenWrapper {transition: max-height .4s ease, opacity .35s; overflow:hidden; max-height:0; opacity:0;}
+#adminTokenWrapper.show {max-height:140px; opacity:1;}
+
+/* Small devices */
+@media (max-width: 480px) {
+    body {padding: 18px 14px calc(20px + env(safe-area-inset-bottom));}
+    .container {padding: 22px 18px 28px; border-radius:16px;}
+    input, select {font-size: 14.5px; padding: 11px 12px;}
+    button {font-size:16px; padding:13px 16px;}
+    label {margin-top:16px; font-size:13px;}
+    p {font-size:13px;}
+}
+
+/* Ultra narrow */
+@media (max-width: 330px) {
+    h2 {font-size:22px;}
+    button {padding:12px 14px;}
+}
+
+/* Landscape tweaks */
+@media (max-height: 540px) and (orientation: landscape) {
+    body {align-items:stretch; padding: 12px 18px;}
+    .container {max-width:520px; display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+    form {grid-column:1 / -1;}
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    body::before {background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.85));}
+    .container {background: rgba(34,34,34,0.9); box-shadow:0 6px 28px -6px rgba(0,0,0,0.6);}    
+    h2 {color:#f8f5f1;}
+    label {color:#ddd0c3;}
+    input, select {background:#2b2723; border-color:#51463b; color:#f4ede6;}
+    input:focus, select:focus {border-color:#cfa572; box-shadow:0 0 0 3px rgba(207,165,114,0.35); background:#332e2a;}
+    button {background:linear-gradient(135deg,#b27b3b,#d19a5c);}    
+    p {color:#d6c9bb;}
+    a {color:#e1b278;}
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+    * {animation:none !important; transition:none !important;}
 }

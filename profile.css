@@ -1,84 +1,127 @@
+/* Mobile-first enhanced profile styling */
 body {
     background-image: url('WhatsApp Image 2025-08-25 at 02.50.44_866e3f72.jpg');
     background-size: cover;
+    background-position: center;
     background-repeat: no-repeat;
     font-family: 'Cairo', Arial, sans-serif;
     direction: rtl;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: clamp(14px,4vh,48px) 14px env(safe-area-inset-bottom);
+    -webkit-font-smoothing: antialiased;
 }
+
+body::before { /* overlay for readability */
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.55));
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: -1;
+}
+
 .container {
-    background: rgba(255,255,255,0.85);
-    max-width: 450px;
-    margin: 60px auto;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px #aaa;
+    width: 100%;
+    max-width: 560px;
+    background: rgba(255,255,255,0.94);
+    padding: clamp(22px,4vh,40px) clamp(20px,5vw,36px) 34px;
+    border-radius: 22px;
+    box-shadow: 0 8px 34px -10px rgba(0,0,0,0.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    position: relative;
+    animation: fadeProfile .6s cubic-bezier(.18,.84,.36,1) both;
     text-align: right;
 }
-h2 {
-    margin-bottom: 25px;
-}
-#profileInfo {
-    margin-bottom: 20px;
-    line-height: 2;
-    font-size: 18px;
-}
+
+@keyframes fadeProfile {from {opacity:0; transform: translateY(28px) scale(.96);} to {opacity:1; transform: translateY(0) scale(1);} }
+
+h2 {margin:0 0 20px; font-size: clamp(22px,5.5vw,34px); color:#3b2f22; letter-spacing:.4px; text-align:center;}
+
+#profileInfo {margin-bottom: 18px; line-height: 1.8; font-size: 15.5px; color:#3d3328; word-break: break-word;}
+
+.profile-sections-grid {display: grid; gap: 18px;}
 
 .profile-section {
-    background: rgba(255,255,255,0.9);
-    margin: 15px 0;
-    padding: 15px;
-    border-radius: 8px;
-    border-right: 4px solid #a67c52;
+    background: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.95));
+    padding: 18px 18px 16px;
+    border-radius: 16px;
+    position: relative;
+    border: 1.5px solid #e5d7ca;
+    box-shadow: 0 4px 16px -6px rgba(0,0,0,0.15);
+    overflow: hidden;
+    transition: transform .3s, box-shadow .3s;
+}
+.profile-section::before {content:""; position:absolute; inset:0; background:linear-gradient(125deg,rgba(166,124,82,0.08),rgba(193,141,92,0.15)); opacity:.9; pointer-events:none;}
+.profile-section:hover {transform:translateY(-4px); box-shadow:0 8px 26px -8px rgba(0,0,0,0.28);}
+
+.profile-section h3 {margin:0 0 10px; font-size:18px; color:#8d612f; display:flex; align-items:center; gap:6px; letter-spacing:.3px;}
+.profile-section h3 span.icon {font-size:19px;}
+
+.booking-item {background: rgba(166,124,82,0.12); padding:10px 12px; margin:6px 0; border-radius:10px; border-inline-start:4px solid #a67c52; font-size:14px; line-height:1.4; display:flex; flex-direction:column; gap:2px;}
+.booking-item strong {color:#704e28;}
+
+.profile-actions {display:grid; gap:14px; margin-top:26px; grid-template-columns:1fr;}
+@media (min-width:520px){ .profile-actions {grid-template-columns:repeat(auto-fit,minmax(180px,1fr));} }
+
+.profile-actions button {width:100%; padding:14px 18px; border:none; border-radius:14px; font-size:15px; font-weight:600; cursor:pointer; letter-spacing:.4px; color:#fff; display:inline-flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 16px -6px rgba(0,0,0,0.3); transition:transform .25s, box-shadow .25s, filter .35s;}
+.profile-actions button:active {transform:scale(.95);} 
+.profile-actions button:hover {box-shadow:0 7px 24px -8px rgba(0,0,0,0.45);} 
+
+.map-btn {background:linear-gradient(135deg,#3498db,#2980b9);} 
+.edit-btn {background:linear-gradient(135deg,#f39c12,#e67e22);} 
+.logout-btn {background:linear-gradient(135deg,#e74c3c,#c0392b);} 
+
+.meta-row {display:flex; flex-wrap:wrap; gap:8px; font-size:13px; color:#6a5b4b; margin-top:6px;}
+.meta-pill {background:#f2e7db; padding:4px 10px; border-radius:40px; display:inline-flex; align-items:center; gap:4px; font-weight:600;}
+
+/* Small phones */
+@media (max-width:480px){
+    body {padding:18px 14px calc(22px + env(safe-area-inset-bottom));}
+    .container {padding:24px 18px 30px; border-radius:20px;}
+    h2 {font-size:26px;}
+    #profileInfo {font-size:14.5px;}
+    .profile-section {padding:16px 16px 14px;}
+    .profile-actions button {padding:13px 16px; font-size:14.5px;}
 }
 
-.profile-section h3 {
-    color: #a67c52;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 5px;
+/* Ultra narrow */
+@media (max-width:330px){
+    h2 {font-size:24px;}
+    .profile-actions button {padding:12px 14px;}
 }
 
-.booking-item {
-    background: rgba(166, 124, 82, 0.1);
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 5px;
-    border-right: 3px solid #a67c52;
+/* Landscape short heights */
+@media (max-height:560px) and (orientation:landscape){
+    body {align-items:stretch; padding:12px 18px;}
+    .container {max-width:820px; display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+    #profileInfo {grid-column:1 / -1;}
+    .profile-actions {grid-column:1 / -1; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));}
 }
 
-.profile-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
+/* Dark mode */
+@media (prefers-color-scheme: dark){
+    body::before {background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.85));}
+    .container {background: rgba(30,30,30,0.9); box-shadow:0 8px 38px -10px rgba(0,0,0,0.6);}    
+    h2 {color:#f8f5f1;}
+    #profileInfo {color:#e8e0d7;}
+    .profile-section {background:linear-gradient(135deg,rgba(45,42,40,0.85),rgba(50,47,44,0.95)); border-color:#3a332a;}
+    .profile-section::before {background:linear-gradient(125deg,rgba(178,128,72,0.18),rgba(193,141,92,0.22));}
+    .profile-section h3 {color:#e1b278;}
+    .booking-item {background:rgba(166,124,82,0.22); border-inline-start-color:#cfa572; color:#f3eadf;}
+    .meta-row {color:#b8aa9c;}
+    .meta-pill {background:#3a332a; color:#e4d7ca;}
+    .map-btn {background:linear-gradient(135deg,#3b82f6,#1d4ed8);} 
+    .edit-btn {background:linear-gradient(135deg,#f59e0b,#d97706);} 
+    .logout-btn {background:linear-gradient(135deg,#ef4444,#b91c1c);} 
 }
 
-.profile-actions button {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.map-btn {
-    background: linear-gradient(45deg, #3498db, #2980b9);
-    color: #fff;
-}
-
-.edit-btn {
-    background: linear-gradient(45deg, #f39c12, #e67e22);
-    color: #fff;
-}
-
-.logout-btn {
-    background: linear-gradient(45deg, #e74c3c, #c0392b);
-    color: #fff;
-}
-
-.profile-actions button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce){
+    * {animation:none !important; transition:none !important;}
 }
