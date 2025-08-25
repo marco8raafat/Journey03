@@ -22,8 +22,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show success message
             alert('تم تسجيل الدخول بنجاح!');
             
-            // Redirect to profile page
-            window.location.href = 'profile.html';
+            // Redirect to map4 page
+            window.location.href = 'map4.html';
         } else {
             alert('البريد الإلكتروني أو كلمة المرور غير صحيحة');
         }
@@ -32,6 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if user is already logged in
     const currentUser = localStorage.getItem('currentUser');
     if (currentUser) {
-        window.location.href = 'profile.html';
+        window.location.href = 'map4.html';
     }
 });

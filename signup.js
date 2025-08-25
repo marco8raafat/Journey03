@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
             bonus4: 0,
             bonus5: 0,
             bonus6: 0,
-            registrationDate: new Date().toLocaleDateString('ar-SA'),
+            registrationDate: new Date().toLocaleDateString('en-GB'),
             bookings: []
         };
         
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show success message
         alert('تم إنشاء الحساب بنجاح!');
         
-        // Redirect to profile page
-        window.location.href = 'profile.html';
+        // Redirect to map4 page
+        window.location.href = 'map4.html';
     });
 });
