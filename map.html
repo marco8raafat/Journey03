@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خريطة الكنز</title>
+    <link rel="stylesheet" href="map.css">
+</head>
+<body>
+    <div class="map-container">
+        <h1>خريطة الكنز</h1>
+        
+        <!-- SVG Path connecting all levels -->
+        <svg class="treasure-path" viewBox="0 0 1200 800">
+            <path d="M100,700 Q200,600 300,650 Q400,700 500,600 Q600,500 700,550 Q800,600 900,500 Q1000,400 1100,450" 
+                  stroke="#8B4513" stroke-width="8" fill="none" stroke-dasharray="10,5"/>
+        </svg>
+        
+        <!-- Level 1 -->
+        <div class="level" data-level="1" style="top: 650px; left: 80px;">
+            <div class="level-icon">1</div>
+            <div class="tooltip">
+                <h3>المستوى الأول: بداية المغامرة</h3>
+                <p>ابدأ رحلتك في عالم الكنوز المخفية</p>
+                <p>التذاكر المتاحة: <span class="tickets">15</span></p>
+                <button class="book-btn" onclick="bookLevel(1)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Level 2 -->
+        <div class="level" data-level="2" style="top: 600px; left: 180px;">
+            <div class="level-icon">2</div>
+            <div class="tooltip">
+                <h3>المستوى الثاني: الغابة المظلمة</h3>
+                <p>تجول في الغابة واكتشف الأسرار المخفية</p>
+                <p>التذاكر المتاحة: <span class="tickets">12</span></p>
+                <button class="book-btn" onclick="bookLevel(2)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Level 3 -->
+        <div class="level" data-level="3" style="top: 630px; left: 280px;">
+            <div class="level-icon">3</div>
+            <div class="tooltip">
+                <h3>المستوى الثالث: الكهف المسحور</h3>
+                <p>اكتشف أسرار الكهف وكنوزه الثمينة</p>
+                <p>التذاكر المتاحة: <span class="tickets">8</span></p>
+                <button class="book-btn" onclick="bookLevel(3)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Level 4 -->
+        <div class="level" data-level="4" style="top: 680px; left: 380px;">
+            <div class="level-icon">4</div>
+            <div class="tooltip">
+                <h3>المستوى الرابع: النهر الذهبي</h3>
+                <p>اعبر النهر الذهبي وواجه التحديات</p>
+                <p>التذاكر المتاحة: <span class="tickets">10</span></p>
+                <button class="book-btn" onclick="bookLevel(4)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Level 5 -->
+        <div class="level" data-level="5" style="top: 580px; left: 480px;">
+            <div class="level-icon">5</div>
+            <div class="tooltip">
+                <h3>المستوى الخامس: الجبل الأسود</h3>
+                <p>تسلق الجبل الأسود وابحث عن الكنز المفقود</p>
+                <p>التذاكر المتاحة: <span class="tickets">6</span></p>
+                <button class="book-btn" onclick="bookLevel(5)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Level 6 -->
+        <div class="level" data-level="6" style="top: 480px; left: 580px;">
+            <div class="level-icon">6</div>
+            <div class="tooltip">
+                <h3>المستوى السادس: الصحراء الملتهبة</h3>
+                <p>اجتز الصحراء الحارة وابحث عن الواحة</p>
+                <p>التذاكر المتاحة: <span class="tickets">9</span></p>
+                <button class="book-btn" onclick="bookLevel(6)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Level 7 -->
+        <div class="level" data-level="7" style="top: 530px; left: 680px;">
+            <div class="level-icon">7</div>
+            <div class="tooltip">
+                <h3>المستوى السابع: القلعة المهجورة</h3>
+                <p>استكشف القلعة المهجورة وكشف أسرارها</p>
+                <p>التذاكر المتاحة: <span class="tickets">7</span></p>
+                <button class="book-btn" onclick="bookLevel(7)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Level 8 -->
+        <div class="level" data-level="8" style="top: 580px; left: 780px;">
+            <div class="level-icon">8</div>
+            <div class="tooltip">
+                <h3>المستوى الثامن: البحيرة الزرقاء</h3>
+                <p>اغطس في البحيرة الزرقاء واكتشف كنوزها</p>
+                <p>التذاكر المتاحة: <span class="tickets">5</span></p>
+                <button class="book-btn" onclick="bookLevel(8)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Level 9 -->
+        <div class="level" data-level="9" style="top: 480px; left: 880px;">
+            <div class="level-icon">9</div>
+            <div class="tooltip">
+                <h3>المستوى التاسع: المدينة المفقودة</h3>
+                <p>اكتشف المدينة المفقودة وكنوزها الأثرية</p>
+                <p>التذاكر المتاحة: <span class="tickets">4</span></p>
+                <button class="book-btn" onclick="bookLevel(9)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Level 10 -->
+        <div class="level" data-level="10" style="top: 380px; left: 980px;">
+            <div class="level-icon">10</div>
+            <div class="tooltip">
+                <h3>المستوى العاشر: البرج السحري</h3>
+                <p>اصعد البرج السحري وواجه التحدي الأعظم</p>
+                <p>التذاكر المتاحة: <span class="tickets">3</span></p>
+                <button class="book-btn" onclick="bookLevel(10)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Level 11 -->
+        <div class="level" data-level="11" style="top: 430px; left: 1080px;">
+            <div class="level-icon">11</div>
+            <div class="tooltip">
+                <h3>المستوى الحادي عشر: عرش الملوك</h3>
+                <p>اقترب من عرش الملوك واستعد للمعركة النهائية</p>
+                <p>التذاكر المتاحة: <span class="tickets">2</span></p>
+                <button class="book-btn" onclick="bookLevel(11)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Level 12 -->
+        <div class="level final-level" data-level="12" style="top: 380px; left: 1180px;">
+            <div class="level-icon">👑</div>
+            <div class="tooltip">
+                <h3>المستوى الثاني عشر: الكنز الأعظم</h3>
+                <p>الوصول إلى الكنز الأعظم والفوز بالمغامرة</p>
+                <p>التذاكر المتاحة: <span class="tickets">1</span></p>
+                <button class="book-btn" onclick="bookLevel(12)">احجز الآن</button>
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="navigation">
+            <button onclick="window.location.href='profile.html'">العودة للملف الشخصي</button>
+        </div>
+    </div>
+    
+    <script src="map.js"></script>
+</body>
+</html>
