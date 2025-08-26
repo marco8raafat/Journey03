@@ -530,10 +530,39 @@
                 const attendanceKey = `${emailKey}_${levelId}`;
                 const updates = {};
                 
+                // Get current attendance status to check if this is a new attendance
+                const currentAttendanceRef = ref(database, `attendanceData/${attendanceKey}`);
+                const currentAttendanceSnapshot = await get(currentAttendanceRef);
+                const currentStatus = currentAttendanceSnapshot.exists() ? currentAttendanceSnapshot.val() : null;
+                
+                // Update attendance data
                 if (value) {
                     updates[`attendanceData/${attendanceKey}`] = value;
                 } else {
                     updates[`attendanceData/${attendanceKey}`] = null; // Remove if empty
+                }
+                
+                // If marking as present and wasn't present before, increment attendance count
+                if (value === 'present' || value === 'حاضر') {
+                    if (currentStatus !== 'present' && currentStatus !== 'حاضر') {
+                        // Get current user attendance count
+                        const userRef = ref(database, `users/${emailKey}/attendanceCount`);
+                        const userAttendanceSnapshot = await get(userRef);
+                        const currentCount = userAttendanceSnapshot.exists() ? userAttendanceSnapshot.val() : 0;
+                        
+                        // Increment attendance count
+                        updates[`users/${emailKey}/attendanceCount`] = currentCount + 1;
+                    }
+                } else if (value === 'absent' || value === 'غائب' || !value) {
+                    // If changing from present to absent/empty, decrement attendance count
+                    if (currentStatus === 'present' || currentStatus === 'حاضر') {
+                        const userRef = ref(database, `users/${emailKey}/attendanceCount`);
+                        const userAttendanceSnapshot = await get(userRef);
+                        const currentCount = userAttendanceSnapshot.exists() ? userAttendanceSnapshot.val() : 0;
+                        
+                        // Decrement attendance count (but not below 0)
+                        updates[`users/${emailKey}/attendanceCount`] = Math.max(0, currentCount - 1);
+                    }
                 }
                 
                 await update(ref(database), updates);
@@ -550,17 +579,62 @@
             try {
                 showSyncIndicator();
                 
+                // Get current attendance data from Firebase to compare changes
+                const currentAttendanceSnapshot = await get(ref(database, 'attendanceData'));
+                const currentAttendanceData = currentAttendanceSnapshot.exists() ? currentAttendanceSnapshot.val() : {};
+                
                 const attendanceData = {};
+                const userAttendanceUpdates = {};
                 const selects = document.querySelectorAll('.attendance-select');
                 
+                // Process all attendance selections
                 selects.forEach(select => {
                     if (select.value) {
                         const key = select.id.replace('attendance_', '');
-                        attendanceData[key] = select.value;
+                        const emailKey = key.split('_level')[0];
+                        const newValue = select.value;
+                        const oldValue = currentAttendanceData[key] || null;
+                        
+                        attendanceData[key] = newValue;
+                        
+                        // Track attendance count changes for each user
+                        if (!userAttendanceUpdates[emailKey]) {
+                            userAttendanceUpdates[emailKey] = { increment: 0 };
+                        }
+                        
+                        // Check if this is a change from absent to present
+                        if ((newValue === 'present' || newValue === 'حاضر') && 
+                            (oldValue !== 'present' && oldValue !== 'حاضر')) {
+                            userAttendanceUpdates[emailKey].increment += 1;
+                        }
+                        // Check if this is a change from present to absent
+                        else if ((oldValue === 'present' || oldValue === 'حاضر') && 
+                                (newValue !== 'present' && newValue !== 'حاضر')) {
+                            userAttendanceUpdates[emailKey].increment -= 1;
+                        }
                     }
                 });
                 
-                await set(ref(database, 'attendanceData'), attendanceData);
+                // Prepare all updates
+                const updates = {
+                    'attendanceData': attendanceData
+                };
+                
+                // Update user attendance counts
+                for (const [emailKey, countChange] of Object.entries(userAttendanceUpdates)) {
+                    if (countChange.increment !== 0) {
+                        // Get current attendance count
+                        const userAttendanceRef = ref(database, `users/${emailKey}/attendanceCount`);
+                        const snapshot = await get(userAttendanceRef);
+                        const currentCount = snapshot.exists() ? snapshot.val() : 0;
+                        
+                        // Update with new count (ensure it doesn't go below 0)
+                        updates[`users/${emailKey}/attendanceCount`] = Math.max(0, currentCount + countChange.increment);
+                    }
+                }
+                
+                // Apply all updates
+                await update(ref(database), updates);
                 
                 // Show success message
                 const saveBtn = document.querySelector('.save-btn');
