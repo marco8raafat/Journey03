@@ -207,9 +207,52 @@
             font-size: 14px;
             color: #666;
         }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #10b981;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .sync-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2196f3;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: none;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
+    <div class="save-indicator" id="saveIndicator">تم الحفظ ✓</div>
+    <div class="sync-indicator" id="syncIndicator">جاري المزامنة...</div>
+    
     <div class="container">
         <div class="header">
             <h1>سجل الحضور والحجز - رحلة القطار التعليمية</h1>
@@ -223,6 +266,14 @@
             <button class="refresh-btn" onclick="window.location.href='lockLevels.html'" style="background: linear-gradient(45deg, #ffc107, #ffb300);">التحكم في المراحل</button>
             <button class="refresh-btn" onclick="window.location.href='map4.html'" style="background: linear-gradient(45deg, #6f42c1, #8e44ad);">عودة للخريطة</button>
             <span style="margin-right: auto; color: #666;">آخر تحديث: <span id="lastUpdate">-</span></span>
+        </div>
+
+        <div id="loadingMessage" class="loading" style="display: none;">
+            جاري تحميل البيانات...
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;">
+            حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.
         </div>
 
         <div class="table-container">
@@ -253,7 +304,7 @@
                     </tr>
                 </thead>
                 <tbody id="attendanceTableBody">
-                    <!-- سيتم تعبئة البيانات من JavaScript -->
+                    <!-- سيتم تعبئة البيانات من Firebase -->
                 </tbody>
             </table>
         </div>
@@ -274,8 +325,36 @@
         </div>
     </div>
 
-    <script>
-        // بيانات المراحل
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Firebase configuration
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getDatabase, ref, set, get, child, update } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHp8tHdlNoykCrMFZvl1gJKwcIGLcJ8gM",
+            authDomain: "journey03-ed32f.firebaseapp.com",
+            databaseURL: "https://journey03-ed32f-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "journey03-ed32f",
+            storageBucket: "journey03-ed32f.firebasestorage.app",
+            messagingSenderId: "637158543040",
+            appId: "1:637158543040:web:4ddfd0c0bc412cb6716725",
+            measurementId: "G-PPVXVYL8E2"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Global variables for Firebase operations
+        window.database = database;
+        window.firebaseRef = ref;
+        window.firebaseSet = set;
+        window.firebaseGet = get;
+        window.firebaseChild = child;
+        window.firebaseUpdate = update;
+
+        // Level data
         const levels = [
             { id: 1, name: "Introduction to Computing", date: "February 15, 2024" },
             { id: 2, name: "Programming Fundamentals", date: "February 20, 2024" },
@@ -285,166 +364,246 @@
             { id: 6, name: "Advanced Programming", date: "March 15, 2024" }
         ];
 
-        // تحميل البيانات عند تحميل الصفحة
+        // Load data when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadBookings();
         });
 
-        // تحميل الحجوزات والمستخدمين
-        function loadBookings() {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const attendanceData = JSON.parse(localStorage.getItem('attendanceData') || '{}');
-            
+        // Load bookings and attendance data from Firebase
+        window.loadBookings = async function() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const errorMessage = document.getElementById('errorMessage');
             const tableBody = document.getElementById('attendanceTableBody');
-            tableBody.innerHTML = '';
-
-            let totalBookings = 0;
-            let presentCount = 0;
-
-            users.forEach(user => {
-                const row = document.createElement('tr');
+            
+            try {
+                loadingMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
                 
-                // عمود الاسم
-                const nameCell = document.createElement('td');
-                nameCell.className = 'name-cell';
-                nameCell.textContent = user.name;
-                row.appendChild(nameCell);
+                // Load users and attendance data
+                const dbRef = ref(database);
+                const [usersSnapshot, attendanceSnapshot] = await Promise.all([
+                    get(child(dbRef, 'users')),
+                    get(child(dbRef, 'attendanceData'))
+                ]);
+                
+                const users = usersSnapshot.exists() ? Object.values(usersSnapshot.val()) : [];
+                const attendanceData = attendanceSnapshot.exists() ? attendanceSnapshot.val() : {};
+                
+                tableBody.innerHTML = '';
 
-                // إنشاء أعمدة للمراحل الست
-                levels.forEach(level => {
-                    // عمود الحجز
-                    const bookingCell = document.createElement('td');
-                    bookingCell.className = 'booking-cell';
-                    
-                    // البحث عن حجز هذا المستخدم لهذه المرحلة
-                    const booking = user.bookings && user.bookings.find(b => b.levelId == level.id);
-                    
-                    if (booking) {
-                        const bookingDate = new Date(booking.bookingDate || Date.now());
-                        bookingCell.innerHTML = `
-                            <div>✓ محجوز</div>
-                            <div class="booking-date">${bookingDate.toLocaleDateString('ar-EG')} - ${bookingDate.toLocaleTimeString('ar-EG', {hour: '2-digit', minute: '2-digit'})}</div>
-                        `;
-                        totalBookings++;
-                    } else {
-                        bookingCell.innerHTML = '<span class="no-booking">غير محجوز</span>';
-                    }
-                    row.appendChild(bookingCell);
+                let totalBookings = 0;
+                let presentCount = 0;
 
-                    // عمود الحضور
-                    const attendanceCell = document.createElement('td');
-                    attendanceCell.className = 'attendance-cell';
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    const emailKey = user.email.replace(/\./g, '_').replace(/@/g, '_at_');
                     
-                    const select = document.createElement('select');
-                    select.className = 'attendance-select';
-                    select.id = `attendance_${user.email}_${level.id}`;
-                    
-                    // الخيارات
-                    const options = [
-                        { value: '', text: 'لم يحدد' },
-                        { value: 'present', text: 'حاضر' },
-                        { value: 'absent', text: 'غائب' }
-                    ];
-                    
-                    options.forEach(option => {
-                        const opt = document.createElement('option');
-                        opt.value = option.value;
-                        opt.textContent = option.text;
-                        select.appendChild(opt);
+                    // Name column
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'name-cell';
+                    nameCell.textContent = user.name;
+                    row.appendChild(nameCell);
+
+                    // Create columns for all six levels
+                    levels.forEach(level => {
+                        // Booking column
+                        const bookingCell = document.createElement('td');
+                        bookingCell.className = 'booking-cell';
+                        
+                        // Find booking for this user and level
+                        const booking = user.bookings && user.bookings.find(b => b.levelId == level.id);
+                        
+                        if (booking) {
+                            const bookingDate = new Date(booking.bookingDate || Date.now());
+                            bookingCell.innerHTML = `
+                                <div>✓ محجوز</div>
+                                <div class="booking-date">${bookingDate.toLocaleDateString('ar-EG')} - ${bookingDate.toLocaleTimeString('ar-EG', {hour: '2-digit', minute: '2-digit'})}</div>
+                            `;
+                            totalBookings++;
+                        } else {
+                            bookingCell.innerHTML = '<span class="no-booking">غير محجوز</span>';
+                        }
+                        row.appendChild(bookingCell);
+
+                        // Attendance column
+                        const attendanceCell = document.createElement('td');
+                        attendanceCell.className = 'attendance-cell';
+                        
+                        const select = document.createElement('select');
+                        select.className = 'attendance-select';
+                        select.id = `attendance_${emailKey}_${level.id}`;
+                        
+                        // Options
+                        const options = [
+                            { value: '', text: 'لم يحدد' },
+                            { value: 'present', text: 'حاضر' },
+                            { value: 'absent', text: 'غائب' }
+                        ];
+                        
+                        options.forEach(option => {
+                            const opt = document.createElement('option');
+                            opt.value = option.value;
+                            opt.textContent = option.text;
+                            select.appendChild(opt);
+                        });
+
+                        // Set saved attendance value
+                        const savedAttendance = attendanceData[`${emailKey}_${level.id}`];
+                        if (savedAttendance) {
+                            select.value = savedAttendance;
+                            select.className = `attendance-select ${savedAttendance}`;
+                            if (savedAttendance === 'present') presentCount++;
+                        }
+
+                        // Add change listener for auto-save
+                        select.addEventListener('change', function() {
+                            this.className = `attendance-select ${this.value}`;
+                            autoSaveAttendance(emailKey, level.id, this.value);
+                        });
+
+                        attendanceCell.appendChild(select);
+                        row.appendChild(attendanceCell);
                     });
 
-                    // تحديد القيمة المحفوظة
-                    const savedAttendance = attendanceData[`${user.email}_${level.id}`];
-                    if (savedAttendance) {
-                        select.value = savedAttendance;
-                        select.className = `attendance-select ${savedAttendance}`;
-                        if (savedAttendance === 'present') presentCount++;
-                    }
-
-                    // إضافة مستمع للتغيير
-                    select.addEventListener('change', function() {
-                        this.className = `attendance-select ${this.value}`;
-                        saveAttendance();
-                    });
-
-                    attendanceCell.appendChild(select);
-                    row.appendChild(attendanceCell);
+                    tableBody.appendChild(row);
                 });
 
-                tableBody.appendChild(row);
-            });
-
-            // تحديث الإحصائيات
-            updateStats(users.length, totalBookings, presentCount);
-            
-            // تحديث وقت آخر تحديث
-            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
+                // Update statistics
+                updateStats(users.length, totalBookings, presentCount);
+                
+                // Update last update time
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'حدث خطأ في تحميل البيانات: ' + error.message;
+            } finally {
+                loadingMessage.style.display = 'none';
+            }
         }
 
-        // حفظ بيانات الحضور
-        function saveAttendance() {
-            const attendanceData = {};
-            const selects = document.querySelectorAll('.attendance-select');
-            
-            selects.forEach(select => {
-                if (select.value) {
-                    attendanceData[select.id.replace('attendance_', '')] = select.value;
+        // Auto-save attendance data to Firebase
+        window.autoSaveAttendance = async function(emailKey, levelId, value) {
+            try {
+                showSyncIndicator();
+                
+                const attendanceKey = `${emailKey}_${levelId}`;
+                const updates = {};
+                
+                if (value) {
+                    updates[`attendanceData/${attendanceKey}`] = value;
+                } else {
+                    updates[`attendanceData/${attendanceKey}`] = null; // Remove if empty
                 }
-            });
-            
-            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-            
-            // إظهار رسالة نجح الحفظ
-            const saveBtn = document.querySelector('.save-btn');
-            const originalText = saveBtn.textContent;
-            saveBtn.textContent = 'تم الحفظ ✓';
-            saveBtn.style.background = 'linear-gradient(45deg, #10b981, #34d399)';
-            
-            setTimeout(() => {
-                saveBtn.textContent = originalText;
-                saveBtn.style.background = '';
-            }, 2000);
+                
+                await update(ref(database), updates);
+                showSaveIndicator();
+                
+            } catch (error) {
+                console.error('Error saving attendance:', error);
+                alert('حدث خطأ في حفظ الحضور. يرجى المحاولة مرة أخرى.');
+            }
         }
 
-        // تحديث الإحصائيات
-        function updateStats(totalUsers, totalBookings, presentCount) {
+        // Save all attendance data to Firebase
+        window.saveAttendance = async function() {
+            try {
+                showSyncIndicator();
+                
+                const attendanceData = {};
+                const selects = document.querySelectorAll('.attendance-select');
+                
+                selects.forEach(select => {
+                    if (select.value) {
+                        const key = select.id.replace('attendance_', '');
+                        attendanceData[key] = select.value;
+                    }
+                });
+                
+                await set(ref(database, 'attendanceData'), attendanceData);
+                
+                // Show success message
+                const saveBtn = document.querySelector('.save-btn');
+                const originalText = saveBtn.textContent;
+                saveBtn.textContent = 'تم الحفظ ✓';
+                saveBtn.style.background = 'linear-gradient(45deg, #10b981, #34d399)';
+                
+                setTimeout(() => {
+                    saveBtn.textContent = originalText;
+                    saveBtn.style.background = '';
+                }, 2000);
+                
+                showSaveIndicator();
+                
+            } catch (error) {
+                console.error('Error saving attendance:', error);
+                alert('حدث خطأ في الحفظ. يرجى المحاولة مرة أخرى.');
+            }
+        }
+
+        // Update statistics
+        window.updateStats = function(totalUsers, totalBookings, presentCount) {
             document.getElementById('totalUsers').textContent = totalUsers;
             document.getElementById('totalBookings').textContent = totalBookings;
             document.getElementById('presentToday').textContent = presentCount;
         }
 
-        // محاكاة إضافة حجز جديد (يتم استدعاؤها من map4.html عند الحجز)
-        function addBooking(userEmail, levelId, levelName) {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const userIndex = users.findIndex(u => u.email === userEmail);
-            
-            if (userIndex !== -1) {
-                if (!users[userIndex].bookings) {
-                    users[userIndex].bookings = [];
-                }
+        // Add booking function (called from map4.html when booking)
+        window.addBooking = async function(userEmail, levelId, levelName) {
+            try {
+                const emailKey = userEmail.replace(/\./g, '_').replace(/@/g, '_at_');
                 
-                // التحقق من عدم وجود حجز مسبق لنفس المرحلة
-                const existingBooking = users[userIndex].bookings.find(b => b.levelId == levelId);
-                if (!existingBooking) {
-                    users[userIndex].bookings.push({
-                        levelId: levelId,
-                        name: levelName,
-                        bookingDate: new Date().toISOString(),
-                        date: levels.find(l => l.id == levelId)?.date || '',
-                        time: '09:00'
-                    });
+                // Get current user data
+                const userRef = ref(database, `users/${emailKey}`);
+                const snapshot = await get(userRef);
+                
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    const bookings = userData.bookings || [];
                     
-                    localStorage.setItem('users', JSON.stringify(users));
+                    // Check if booking already exists for this level
+                    const existingBooking = bookings.find(b => b.levelId == levelId);
+                    if (!existingBooking) {
+                        bookings.push({
+                            levelId: levelId,
+                            name: levelName,
+                            bookingDate: new Date().toISOString(),
+                            date: levels.find(l => l.id == levelId)?.date || '',
+                            time: '09:00'
+                        });
+                        
+                        // Update user bookings in Firebase
+                        await update(ref(database), {
+                            [`users/${emailKey}/bookings`]: bookings
+                        });
+                        
+                        // Reload the data to reflect changes
+                        loadBookings();
+                    }
                 }
+            } catch (error) {
+                console.error('Error adding booking:', error);
             }
         }
 
-        // إضافة مستمع لتحديث البيانات عند تغيير localStorage
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'users') {
-                loadBookings();
-            }
-        });
+        // Show save indicator
+        window.showSaveIndicator = function() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 2000);
+        }
+
+        // Show sync indicator
+        window.showSyncIndicator = function() {
+            const indicator = document.getElementById('syncIndicator');
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 1000);
+        }
     </script>
 </body>
 </html>

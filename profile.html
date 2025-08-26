@@ -4,16 +4,449 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <title>الملف الشخصي</title>
-    <link rel="stylesheet" href="profile.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #205c6b;
+            font-size: 32px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #205c6b;
+            padding-bottom: 15px;
+        }
+
+        .profile-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #205c6b;
+        }
+
+        .profile-section h3 {
+            color: #205c6b;
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 8px;
+        }
+
+        .profile-section p {
+            margin-bottom: 10px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .profile-section strong {
+            color: #2a5a6b;
+            font-weight: bold;
+        }
+
+        .booking-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .booking-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .profile-actions button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .map-btn {
+            background: linear-gradient(45deg, #10b981, #34d399);
+            color: white;
+        }
+
+        .map-btn:hover {
+            background: linear-gradient(45deg, #059669, #10b981);
+            transform: translateY(-2px);
+        }
+
+        .edit-btn {
+            background: linear-gradient(45deg, #ffc107, #ffb300);
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: linear-gradient(45deg, #e0a800, #ffc107);
+            transform: translateY(-2px);
+        }
+
+        .logout-btn {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(45deg, #c82333, #dc3545);
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .bonus-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .bonus-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .bonus-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #205c6b;
+        }
+
+        .bonus-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .profile-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .profile-actions button {
+                width: 100%;
+            }
+
+            .bonus-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+
+        .stats-summary {
+            display: flex;
+            justify-content: space-around;
+            background: linear-gradient(45deg, #205c6b, #2a7a8a);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>الملف الشخصي</h2>
-        <div id="profileInfo">
-            <!-- سيتم تعبئة البيانات من جافاسكريبت -->
+        
+        <div id="loadingMessage" class="loading" style="display: none;">
+            جاري تحميل البيانات...
         </div>
-        <button onclick="window.location.href='index.html'">تسجيل الخروج</button>
+
+        <div id="errorMessage" class="error-message" style="display: none;">
+            حدث خطأ في تحميل البيانات.
+        </div>
+
+        <div id="profileInfo">
+            <!-- سيتم تعبئة البيانات من Firebase -->
+        </div>
     </div>
-    <script src="profile.js"></script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Firebase configuration
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getDatabase, ref, get, child, update } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHp8tHdlNoykCrMFZvl1gJKwcIGLcJ8gM",
+            authDomain: "journey03-ed32f.firebaseapp.com",
+            databaseURL: "https://journey03-ed32f-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "journey03-ed32f",
+            storageBucket: "journey03-ed32f.firebasestorage.app",
+            messagingSenderId: "637158543040",
+            appId: "1:637158543040:web:4ddfd0c0bc412cb6716725",
+            measurementId: "G-PPVXVYL8E2"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Global variables for Firebase operations
+        window.database = database;
+        window.firebaseRef = ref;
+        window.firebaseGet = get;
+        window.firebaseChild = child;
+        window.firebaseUpdate = update;
+
+        // Load profile when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            const currentUser = localStorage.getItem('currentUser');
+            
+            // Check if user is logged in
+            if (!currentUser) {
+                alert('يجب تسجيل الدخول أولاً');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            await loadUserProfile(currentUser);
+        });
+
+        // Load user profile from Firebase
+        async function loadUserProfile(userEmail) {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const profileInfo = document.getElementById('profileInfo');
+            
+            try {
+                loadingMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+                
+                // Create email key for Firebase
+                const emailKey = userEmail.replace(/\./g, '_').replace(/@/g, '_at_');
+                
+                // Get user data from Firebase
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, `users/${emailKey}`));
+                
+                if (!snapshot.exists()) {
+                    throw new Error('المستخدم غير موجود');
+                }
+                
+                const user = snapshot.val();
+                
+                // Calculate total bonuses
+                const totalBonuses = (user.bonus1 || 0) + (user.bonus2 || 0) + (user.bonus3 || 0) + 
+                                   (user.bonus4 || 0) + (user.bonus5 || 0) + (user.bonus6 || 0);
+                
+                // Calculate total bookings
+                const totalBookings = user.bookings ? user.bookings.length : 0;
+                
+                // Display user profile information
+                profileInfo.innerHTML = `
+                    <div class="stats-summary">
+                        <div class="stat-item">
+                            <div class="stat-number">${totalBonuses}</div>
+                            <div class="stat-label">إجمالي المكافآت</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">${totalBookings}</div>
+                            <div class="stat-label">إجمالي الحجوزات</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">${user.attendanceCount || 0}</div>
+                            <div class="stat-label">مرات الحضور</div>
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+                        <h3>المعلومات الشخصية</h3>
+                        <p><strong>الاسم:</strong> ${user.name}</p>
+                        <p><strong>البريد الإلكتروني:</strong> ${user.email}</p>
+                        <p><strong>رقم الهاتف:</strong> ${user.phone}</p>
+                        <p><strong>الفريق:</strong> ${user.team}</p>
+                        <p><strong>الدور:</strong> ${user.role === 'admin' ? 'ادمن' : 'مستخدم'}</p>
+                        <p><strong>تاريخ التسجيل:</strong> ${user.registrationDate}</p>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <h3>المكافآت</h3>
+                        <div class="bonus-grid">
+                            <div class="bonus-item">
+                                <div class="bonus-value">${user.bonus1 || 0}</div>
+                                <div class="bonus-label">Bonus 1</div>
+                            </div>
+                            <div class="bonus-item">
+                                <div class="bonus-value">${user.bonus2 || 0}</div>
+                                <div class="bonus-label">Bonus 2</div>
+                            </div>
+                            <div class="bonus-item">
+                                <div class="bonus-value">${user.bonus3 || 0}</div>
+                                <div class="bonus-label">Bonus 3</div>
+                            </div>
+                            <div class="bonus-item">
+                                <div class="bonus-value">${user.bonus4 || 0}</div>
+                                <div class="bonus-label">Bonus 4</div>
+                            </div>
+                            <div class="bonus-item">
+                                <div class="bonus-value">${user.bonus5 || 0}</div>
+                                <div class="bonus-label">Gold Bonus</div>
+                            </div>
+                            <div class="bonus-item">
+                                <div class="bonus-value">${user.bonus6 || 0}</div>
+                                <div class="bonus-label">VIP Bonus</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${user.bookings && user.bookings.length > 0 ? `
+                    <div class="profile-section">
+                        <h3>الحجوزات</h3>
+                        ${user.bookings.map(booking => `
+                            <div class="booking-item">
+                                <p><strong>${booking.name}</strong></p>
+                                <p>التاريخ: ${booking.date} - الوقت: ${booking.time || '09:00'}</p>
+                                <p style="font-size: 12px; color: #666;">تم الحجز: ${new Date(booking.bookingDate).toLocaleDateString('ar-EG')}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ` : `
+                    <div class="profile-section">
+                        <h3>الحجوزات</h3>
+                        <p style="color: #666; text-align: center; font-style: italic;">لا توجد حجوزات حتى الآن</p>
+                    </div>
+                    `}
+                    
+                    <div class="profile-actions">
+                        <button onclick="window.location.href='map4.html'" class="map-btn">خريطة الكنز</button>
+                        <button onclick="editProfile()" class="edit-btn">تعديل الملف الشخصي</button>
+                        <button onclick="logout()" class="logout-btn">تسجيل الخروج</button>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'حدث خطأ في تحميل البيانات: ' + error.message;
+            } finally {
+                loadingMessage.style.display = 'none';
+            }
+        }
+
+        // Edit profile function
+        window.editProfile = async function() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                alert('غير مسموح بالوصول');
+                return;
+            }
+            
+            try {
+                // Get current user data
+                const emailKey = currentUser.replace(/\./g, '_').replace(/@/g, '_at_');
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, `users/${emailKey}`));
+                
+                if (!snapshot.exists()) {
+                    alert('المستخدم غير موجود');
+                    return;
+                }
+                
+                const user = snapshot.val();
+                
+                const newName = prompt('الاسم الجديد:', user.name);
+                const newPhone = prompt('رقم الهاتف الجديد:', user.phone);
+                
+                if (newName !== null && newPhone !== null) {
+                    const updates = {};
+                    if (newName && newName.trim() !== '') {
+                        updates[`users/${emailKey}/name`] = newName.trim();
+                    }
+                    if (newPhone && newPhone.trim() !== '') {
+                        updates[`users/${emailKey}/phone`] = newPhone.trim();
+                    }
+                    
+                    if (Object.keys(updates).length > 0) {
+                        await update(ref(database), updates);
+                        alert('تم تحديث الملف الشخصي بنجاح!');
+                        location.reload();
+                    } else {
+                        alert('لم يتم إجراء أي تغييرات');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('حدث خطأ أثناء تحديث الملف الشخصي. يرجى المحاولة مرة أخرى.');
+            }
+        }
+
+        // Logout function
+        window.logout = function() {
+            const confirmLogout = confirm('هل تريد تسجيل الخروج؟');
+            if (confirmLogout) {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
 </body>
 </html>

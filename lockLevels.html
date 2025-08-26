@@ -72,6 +72,12 @@
             transform: translateY(-2px);
         }
 
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn.back-btn {
             background: linear-gradient(45deg, #6f42c1, #8e44ad);
         }
@@ -292,12 +298,32 @@
             background: linear-gradient(45deg, #495057, #343a40);
         }
 
+        .bulk-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .bulk-btn.unlock-all {
             background: linear-gradient(45deg, #10b981, #34d399);
         }
 
         .bulk-btn.lock-all {
             background: linear-gradient(45deg, #dc3545, #c82333);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+            border: 1px solid #f5c6cb;
         }
 
         @media (max-width: 768px) {
@@ -325,8 +351,8 @@
         </div>
 
         <div class="controls">
-            <button class="btn" onclick="saveAllSettings()">حفظ جميع الإعدادات</button>
-            <button class="btn" onclick="loadTeamData()">تحديث البيانات</button>
+            <button class="btn" id="saveBtn" onclick="saveAllSettings()">حفظ جميع الإعدادات</button>
+            <button class="btn" id="refreshBtn" onclick="loadTeamData()">تحديث البيانات</button>
             <a href="map4.html" class="btn back-btn">عودة للخريطة</a>
             <span style="margin-right: auto; color: #666;">آخر تحديث: <span id="lastUpdate">-</span></span>
         </div>
@@ -346,18 +372,46 @@
             </div>
 
             <div class="bulk-actions">
-                <button class="bulk-btn unlock-all" onclick="bulkToggle(true)">فتح جميع المراحل</button>
-                <button class="bulk-btn lock-all" onclick="bulkToggle(false)">إغلاق جميع المراحل</button>
+                <button class="bulk-btn unlock-all" id="unlockAllBtn" onclick="bulkToggle(true)">فتح جميع المراحل</button>
+                <button class="bulk-btn lock-all" id="lockAllBtn" onclick="bulkToggle(false)">إغلاق جميع المراحل</button>
             </div>
 
             <div class="levels-grid" id="levelsGrid">
                 <!-- سيتم تعبئة المراحل هنا -->
             </div>
         </div>
+
+        <div class="loading" id="loading" style="display: none;">
+            جاري التحميل...
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;">
+            <!-- رسائل الخطأ -->
+        </div>
     </div>
 
-    <script>
-        // بيانات المراحل
+    <script type="module">
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHp8tHdlNoykCrMFZvl1gJKwcIGLcJ8gM",
+            authDomain: "journey03-ed32f.firebaseapp.com",
+            databaseURL: "https://journey03-ed32f-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "journey03-ed32f",
+            storageBucket: "journey03-ed32f.firebasestorage.app",
+            messagingSenderId: "637158543040",
+            appId: "1:637158543040:web:4ddfd0c0bc412cb6716725",
+            measurementId: "G-PPVXVYL8E2"
+        };
+
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getDatabase, ref, get, set, update } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Level data
         const levels = [
             { 
                 id: 1, 
@@ -398,38 +452,94 @@
         ];
 
         let currentTeam = '';
-        let levelSettings = JSON.parse(localStorage.getItem('levelSettings') || '{}');
+        let levelSettings = {};
+        let users = [];
 
-        // تحميل البيانات عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTeamData();
-        });
+        // Utility functions
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
 
-        // تحميل بيانات الفرق
-        function loadTeamData() {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function setButtonsDisabled(disabled) {
+            const buttons = document.querySelectorAll('.btn, .bulk-btn');
+            buttons.forEach(btn => btn.disabled = disabled);
+        }
+
+        // Load data from Firebase
+        async function loadTeamData() {
+            try {
+                showLoading();
+                setButtonsDisabled(true);
+
+                // Load users
+                const usersSnapshot = await get(ref(database, 'users'));
+                if (usersSnapshot.exists()) {
+                    const usersData = usersSnapshot.val();
+                    users = Object.entries(usersData).map(([key, user]) => ({
+                        ...user,
+                        id: key
+                    }));
+                } else {
+                    users = [];
+                }
+
+                // Load level settings
+                const levelSettingsSnapshot = await get(ref(database, 'levelSettings'));
+                if (levelSettingsSnapshot.exists()) {
+                    levelSettings = levelSettingsSnapshot.val();
+                } else {
+                    levelSettings = {};
+                }
+
+                // Update team select
+                updateTeamSelect();
+                
+                // Update last update time
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
+                
+            } catch (error) {
+                console.error('Error loading team data:', error);
+                showError('حدث خطأ في تحميل البيانات. الرجاء المحاولة مرة أخرى.');
+            } finally {
+                hideLoading();
+                setButtonsDisabled(false);
+            }
+        }
+
+        // Update team select dropdown
+        function updateTeamSelect() {
             const teamSelect = document.getElementById('teamSelect');
             
-            // الحصول على قائمة الفرق الفريدة
+            // Get unique teams
             const teams = [...new Set(users.map(user => user.team).filter(team => team))];
             
-            // مسح الخيارات الحالية
+            // Clear current options
             teamSelect.innerHTML = '<option value="">-- اختر الفريق --</option>';
             
-            // إضافة الفرق إلى القائمة
+            // Add teams to dropdown
             teams.forEach(team => {
                 const option = document.createElement('option');
                 option.value = team;
                 option.textContent = team;
                 teamSelect.appendChild(option);
             });
-
-            // تحديث وقت آخر تحديث
-            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
         }
 
-        // عرض مراحل الفريق المختار
-        function showTeamLevels() {
+        // Show team levels
+        async function showTeamLevels() {
             const teamSelect = document.getElementById('teamSelect');
             const selectedTeam = teamSelect.value;
             const levelsContainer = document.getElementById('levelsContainer');
@@ -442,16 +552,15 @@
             currentTeam = selectedTeam;
             levelsContainer.classList.add('active');
             
-            // عرض معلومات الفريق
+            // Display team info
             displayTeamInfo(selectedTeam);
             
-            // عرض المراحل
+            // Display levels
             displayLevels(selectedTeam);
         }
 
-        // عرض معلومات الفريق
+        // Display team information
         function displayTeamInfo(teamName) {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
             const teamMembers = users.filter(user => user.team === teamName);
             
             const teamInfo = document.getElementById('teamInfo');
@@ -464,7 +573,7 @@
             `;
         }
 
-        // عرض المراحل
+        // Display levels
         function displayLevels(teamName) {
             const levelsGrid = document.getElementById('levelsGrid');
             levelsGrid.innerHTML = '';
@@ -495,67 +604,118 @@
             });
         }
 
-        // التحقق من حالة المرحلة
+        // Check if level is unlocked
         function isLevelUnlocked(teamName, levelId) {
             if (!levelSettings[teamName]) {
-                levelSettings[teamName] = {};
+                return true; // Default to unlocked
             }
-            // افتراضياً جميع المراحل مفتوحة
             return levelSettings[teamName][levelId] !== false;
         }
 
-        // تبديل حالة المرحلة
-        function toggleLevel(teamName, levelId) {
-            if (!levelSettings[teamName]) {
-                levelSettings[teamName] = {};
+        // Toggle level status
+        async function toggleLevel(teamName, levelId) {
+            try {
+                setButtonsDisabled(true);
+                
+                if (!levelSettings[teamName]) {
+                    levelSettings[teamName] = {};
+                }
+                
+                const currentState = isLevelUnlocked(teamName, levelId);
+                levelSettings[teamName][levelId] = !currentState;
+                
+                // Save to Firebase
+                await set(ref(database, `levelSettings/${teamName}/${levelId}`), !currentState);
+                
+                // Update display
+                displayLevels(teamName);
+                
+            } catch (error) {
+                console.error('Error toggling level:', error);
+                showError('حدث خطأ في تحديث حالة المرحلة');
+            } finally {
+                setButtonsDisabled(false);
             }
-            
-            const currentState = isLevelUnlocked(teamName, levelId);
-            levelSettings[teamName][levelId] = !currentState;
-            
-            // حفظ الإعدادات
-            localStorage.setItem('levelSettings', JSON.stringify(levelSettings));
-            
-            // تحديث العرض
-            displayLevels(teamName);
         }
 
-        // تبديل جماعي للمراحل
-        function bulkToggle(unlock) {
+        // Bulk toggle all levels for a team
+        async function bulkToggle(unlock) {
             if (!currentTeam) return;
             
-            if (!levelSettings[currentTeam]) {
-                levelSettings[currentTeam] = {};
+            try {
+                setButtonsDisabled(true);
+                showLoading();
+                
+                if (!levelSettings[currentTeam]) {
+                    levelSettings[currentTeam] = {};
+                }
+                
+                const updates = {};
+                levels.forEach(level => {
+                    levelSettings[currentTeam][level.id] = unlock;
+                    updates[`levelSettings/${currentTeam}/${level.id}`] = unlock;
+                });
+                
+                // Save all updates to Firebase
+                await update(ref(database), updates);
+                
+                // Update display
+                displayLevels(currentTeam);
+                
+            } catch (error) {
+                console.error('Error in bulk toggle:', error);
+                showError('حدث خطأ في تحديث المراحل');
+            } finally {
+                hideLoading();
+                setButtonsDisabled(false);
             }
-            
-            levels.forEach(level => {
-                levelSettings[currentTeam][level.id] = unlock;
-            });
-            
-            // حفظ الإعدادات
-            localStorage.setItem('levelSettings', JSON.stringify(levelSettings));
-            
-            // تحديث العرض
-            displayLevels(currentTeam);
         }
 
-        // حفظ جميع الإعدادات
-        function saveAllSettings() {
-            localStorage.setItem('levelSettings', JSON.stringify(levelSettings));
-            alert('تم حفظ جميع إعدادات التحكم في المراحل بنجاح!');
-        }
-
-        // دالة للتحقق من إمكانية الوصول للمرحلة (للاستخدام في الصفحات الأخرى)
-        function canAccessLevel(userTeam, levelId) {
-            const settings = JSON.parse(localStorage.getItem('levelSettings') || '{}');
-            if (!settings[userTeam]) {
-                return true; // افتراضياً مفتوح
+        // Save all settings
+        async function saveAllSettings() {
+            try {
+                setButtonsDisabled(true);
+                showLoading();
+                
+                await set(ref(database, 'levelSettings'), levelSettings);
+                alert('تم حفظ جميع إعدادات التحكم في المراحل بنجاح!');
+                
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showError('حدث خطأ في حفظ الإعدادات');
+            } finally {
+                hideLoading();
+                setButtonsDisabled(false);
             }
-            return settings[userTeam][levelId] !== false;
         }
 
-        // تصدير الدالة للاستخدام الخارجي
+        // Function to check level access (for use in other pages)
+        async function canAccessLevel(userTeam, levelId) {
+            try {
+                const snapshot = await get(ref(database, `levelSettings/${userTeam}/${levelId}`));
+                if (snapshot.exists()) {
+                    return snapshot.val() !== false;
+                }
+                return true; // Default to unlocked
+            } catch (error) {
+                console.error('Error checking level access:', error);
+                return true; // Default to allow access on error
+            }
+        }
+
+        // Export function for external use
         window.canAccessLevel = canAccessLevel;
+        window.loadTeamData = loadTeamData;
+        window.showTeamLevels = showTeamLevels;
+        window.toggleLevel = toggleLevel;
+        window.bulkToggle = bulkToggle;
+        window.saveAllSettings = saveAllSettings;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTeamData();
+        });
+
     </script>
 </body>
 </html>

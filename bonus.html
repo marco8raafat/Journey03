@@ -152,12 +152,12 @@
             background: linear-gradient(45deg, #ff6b6b, #ee5a52) !important;
         }
 
-        .bonus-header:nth-child(2) { background:  #cedaf2 !important; }
-        .bonus-header:nth-child(3) { background:  #98FB98 !important; }
-        .bonus-header:nth-child(4) { background:  #FFA500 !important; }
-        .bonus-header:nth-child(5) { background:  #e9dfc5 !important; }
-        .bonus-header:nth-child(6) { background:  #FFD700 !important; }
-        .bonus-header:nth-child(7) { background:  #222426 !important; }
+        .bonus-header:nth-child(2) { background: #cedaf2 !important; }
+        .bonus-header:nth-child(3) { background: #98FB98 !important; }
+        .bonus-header:nth-child(4) { background: #FFA500 !important; }
+        .bonus-header:nth-child(5) { background: #e9dfc5 !important; }
+        .bonus-header:nth-child(6) { background: #FFD700 !important; }
+        .bonus-header:nth-child(7) { background: #222426 !important; }
 
         @media (max-width: 768px) {
             .bonus-table {
@@ -221,10 +221,39 @@
             display: none;
             z-index: 1000;
         }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .sync-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2196f3;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: none;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
     <div class="save-indicator" id="saveIndicator">تم الحفظ ✓</div>
+    <div class="sync-indicator" id="syncIndicator">جاري المزامنة...</div>
     
     <div class="container">
         <div class="header">
@@ -242,6 +271,14 @@
             <span style="margin-right: auto; color: #666;">آخر تحديث: <span id="lastUpdate">-</span></span>
         </div>
 
+        <div id="loadingMessage" class="loading" style="display: none;">
+            جاري تحميل البيانات...
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;">
+            حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.
+        </div>
+
         <div class="table-container">
             <table class="bonus-table" id="bonusTable">
                 <thead>
@@ -257,9 +294,7 @@
                     </tr>
                 </thead>
                 <tbody id="bonusTableBody">
-                    <!-- سيتم تعبئة البيانات من JavaScpt -->
-                    
-                
+                    <!-- سيتم تعبئة البيانات من Firebase -->
                 </tbody>
             </table>
         </div>
@@ -284,179 +319,278 @@
         </div>
     </div>
 
-    <script>
-        // تحميل البيانات عند تحميل الصفحة
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Firebase configuration
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getDatabase, ref, set, get, child, update } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHp8tHdlNoykCrMFZvl1gJKwcIGLcJ8gM",
+            authDomain: "journey03-ed32f.firebaseapp.com",
+            databaseURL: "https://journey03-ed32f-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "journey03-ed32f",
+            storageBucket: "journey03-ed32f.firebasestorage.app",
+            messagingSenderId: "637158543040",
+            appId: "1:637158543040:web:4ddfd0c0bc412cb6716725",
+            measurementId: "G-PPVXVYL8E2"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Global variables for Firebase operations
+        window.database = database;
+        window.firebaseRef = ref;
+        window.firebaseSet = set;
+        window.firebaseGet = get;
+        window.firebaseChild = child;
+        window.firebaseUpdate = update;
+
+        // Load data when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadBonusData();
         });
 
-        // تحميل بيانات المكافآت
-        function loadBonusData() {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
+        // Load bonus data from Firebase
+        window.loadBonusData = async function() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const errorMessage = document.getElementById('errorMessage');
             const tableBody = document.getElementById('bonusTableBody');
-            tableBody.innerHTML = '';
-
-            let totalBonusesGranted = 0;
-            let totalBonusValue = 0;
-            let topPerformer = { name: '-', total: 0 };
-
-            users.forEach((user, index) => {
-                const row = document.createElement('tr');
+            
+            try {
+                loadingMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
                 
-                // عمود الاسم
-                const nameCell = document.createElement('td');
-                nameCell.className = 'name-cell';
-                nameCell.textContent = user.name;
-                row.appendChild(nameCell);
-
-                let userTotal = 0;
-
-                // أعمدة البونصات الستة
-                for (let i = 1; i <= 6; i++) {
-                    const bonusCell = document.createElement('td');
-                    bonusCell.className = 'bonus-cell';
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, 'users'));
+                
+                if (snapshot.exists()) {
+                    const usersData = snapshot.val();
+                    const users = Object.values(usersData);
                     
-                    const input = document.createElement('input');
-                    input.type = 'number';
-                    input.className = 'bonus-input';
-                    input.min = '0';
-                    input.step = '0.5';
-                    input.placeholder = '0';
-                    input.value = user[`bonus${i}`] || 0;
-                    input.id = `bonus_${user.email}_${i}`;
+                    tableBody.innerHTML = '';
                     
-                    // إضافة مستمع للتغيير للحفظ التلقائي
-                    input.addEventListener('input', function() {
-                        autoSave(user.email, i, this.value);
-                        updateRowTotal(user.email);
-                        updateStats();
+                    let totalBonusesGranted = 0;
+                    let totalBonusValue = 0;
+                    let topPerformer = { name: '-', total: 0 };
+
+                    users.forEach((user) => {
+                        const row = document.createElement('tr');
+                        
+                        // Name column
+                        const nameCell = document.createElement('td');
+                        nameCell.className = 'name-cell';
+                        nameCell.textContent = user.name;
+                        row.appendChild(nameCell);
+
+                        let userTotal = 0;
+                        const emailKey = user.email.replace(/\./g, '_').replace(/@/g, '_at_');
+
+                        // Bonus columns (1-6)
+                        for (let i = 1; i <= 6; i++) {
+                            const bonusCell = document.createElement('td');
+                            bonusCell.className = 'bonus-cell';
+                            
+                            const input = document.createElement('input');
+                            input.type = 'number';
+                            input.className = 'bonus-input';
+                            input.min = '0';
+                            input.step = '0.5';
+                            input.placeholder = '0';
+                            input.value = user[`bonus${i}`] || 0;
+                            input.id = `bonus_${emailKey}_${i}`;
+                            
+                            // Add event listener for auto-save
+                            input.addEventListener('input', function() {
+                                autoSave(emailKey, i, this.value);
+                                updateRowTotal(emailKey);
+                                updateStats();
+                            });
+                            
+                            bonusCell.appendChild(input);
+                            row.appendChild(bonusCell);
+                            
+                            userTotal += parseFloat(input.value) || 0;
+                        }
+
+                        // Total column
+                        const totalCell = document.createElement('td');
+                        totalCell.className = 'total-bonus';
+                        totalCell.id = `total_${emailKey}`;
+                        totalCell.textContent = userTotal.toFixed(1);
+                        row.appendChild(totalCell);
+
+                        // Update top performer stats
+                        if (userTotal > topPerformer.total) {
+                            topPerformer = { name: user.name, total: userTotal };
+                        }
+
+                        totalBonusValue += userTotal;
+                        if (userTotal > 0) totalBonusesGranted++;
+
+                        tableBody.appendChild(row);
                     });
+
+                    // Update statistics
+                    updateStats();
                     
-                    bonusCell.appendChild(input);
-                    row.appendChild(bonusCell);
-                    
-                    userTotal += parseFloat(input.value) || 0;
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">لا توجد بيانات مستخدمين</td></tr>';
                 }
-
-                // عمود الإجمالي
-                const totalCell = document.createElement('td');
-                totalCell.className = 'total-bonus';
-                totalCell.id = `total_${user.email}`;
-                totalCell.textContent = userTotal.toFixed(1);
-                row.appendChild(totalCell);
-
-                // تحديث إحصائيات أعلى أداء
-                if (userTotal > topPerformer.total) {
-                    topPerformer = { name: user.name, total: userTotal };
-                }
-
-                totalBonusValue += userTotal;
-                if (userTotal > 0) totalBonusesGranted++;
-
-                tableBody.appendChild(row);
-            });
-
-            // تحديث الإحصائيات
-            updateStats();
-            
-            // تحديث وقت آخر تحديث
-            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
-        }
-
-        // حفظ تلقائي للمكافأة
-        function autoSave(userEmail, bonusNumber, value) {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const userIndex = users.findIndex(u => u.email === userEmail);
-            
-            if (userIndex !== -1) {
-                users[userIndex][`bonus${bonusNumber}`] = parseFloat(value) || 0;
-                localStorage.setItem('users', JSON.stringify(users));
                 
-                // إظهار مؤشر الحفظ
-                showSaveIndicator();
+                // Update last update time
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'حدث خطأ في تحميل البيانات: ' + error.message;
+            } finally {
+                loadingMessage.style.display = 'none';
             }
         }
 
-        // تحديث إجمالي الصف
-        function updateRowTotal(userEmail) {
+        // Auto-save bonus to Firebase
+        window.autoSave = async function(emailKey, bonusNumber, value) {
+            try {
+                showSyncIndicator();
+                
+                const updates = {};
+                updates[`users/${emailKey}/bonus${bonusNumber}`] = parseFloat(value) || 0;
+                
+                await update(ref(database), updates);
+                
+                showSaveIndicator();
+                
+            } catch (error) {
+                console.error('Error saving bonus:', error);
+                alert('حدث خطأ في الحفظ. يرجى المحاولة مرة أخرى.');
+            }
+        }
+
+        // Update row total
+        window.updateRowTotal = function(emailKey) {
             let total = 0;
             for (let i = 1; i <= 6; i++) {
-                const input = document.getElementById(`bonus_${userEmail}_${i}`);
-                total += parseFloat(input.value) || 0;
+                const input = document.getElementById(`bonus_${emailKey}_${i}`);
+                if (input) {
+                    total += parseFloat(input.value) || 0;
+                }
             }
             
-            const totalCell = document.getElementById(`total_${userEmail}`);
+            const totalCell = document.getElementById(`total_${emailKey}`);
             if (totalCell) {
                 totalCell.textContent = total.toFixed(1);
             }
         }
 
-        // تحديث الإحصائيات
-        function updateStats() {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            let totalBonusesGranted = 0;
-            let totalBonusValue = 0;
-            let topPerformer = { name: '-', total: 0 };
+        // Update statistics
+        window.updateStats = async function() {
+            try {
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, 'users'));
+                
+                if (snapshot.exists()) {
+                    const usersData = snapshot.val();
+                    const users = Object.values(usersData);
+                    
+                    let totalBonusesGranted = 0;
+                    let totalBonusValue = 0;
+                    let topPerformer = { name: '-', total: 0 };
 
-            users.forEach(user => {
-                let userTotal = 0;
-                for (let i = 1; i <= 6; i++) {
-                    userTotal += parseFloat(user[`bonus${i}`]) || 0;
+                    users.forEach(user => {
+                        let userTotal = 0;
+                        for (let i = 1; i <= 6; i++) {
+                            userTotal += parseFloat(user[`bonus${i}`]) || 0;
+                        }
+                        
+                        if (userTotal > 0) totalBonusesGranted++;
+                        totalBonusValue += userTotal;
+                        
+                        if (userTotal > topPerformer.total) {
+                            topPerformer = { name: user.name, total: userTotal };
+                        }
+                    });
+
+                    document.getElementById('totalUsers').textContent = users.length;
+                    document.getElementById('totalBonuses').textContent = totalBonusValue.toFixed(1);
+                    document.getElementById('averageBonus').textContent = users.length > 0 ? (totalBonusValue / users.length).toFixed(1) : '0';
+                    document.getElementById('topPerformer').textContent = topPerformer.name;
                 }
-                
-                if (userTotal > 0) totalBonusesGranted++;
-                totalBonusValue += userTotal;
-                
-                if (userTotal > topPerformer.total) {
-                    topPerformer = { name: user.name, total: userTotal };
-                }
-            });
-
-            document.getElementById('totalUsers').textContent = users.length;
-            document.getElementById('totalBonuses').textContent = totalBonusValue.toFixed(1);
-            document.getElementById('averageBonus').textContent = users.length > 0 ? (totalBonusValue / users.length).toFixed(1) : '0';
-            document.getElementById('topPerformer').textContent = topPerformer.name;
-        }
-
-        // حفظ جميع بيانات المكافآت
-        function saveBonusData() {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            
-            users.forEach(user => {
-                for (let i = 1; i <= 6; i++) {
-                    const input = document.getElementById(`bonus_${user.email}_${i}`);
-                    if (input) {
-                        user[`bonus${i}`] = parseFloat(input.value) || 0;
-                    }
-                }
-            });
-            
-            localStorage.setItem('users', JSON.stringify(users));
-            
-            // إظهار رسالة نجح الحفظ
-            alert('تم حفظ جميع المكافآت بنجاح!');
-            loadBonusData();
-        }
-
-        // مسح جميع المكافآت
-        function resetAllBonuses() {
-            if (confirm('هل أنت متأكد من مسح جميع المكافآت؟ لا يمكن التراجع عن هذا الإجراء.')) {
-                const users = JSON.parse(localStorage.getItem('users') || '[]');
-                
-                users.forEach(user => {
-                    for (let i = 1; i <= 6; i++) {
-                        user[`bonus${i}`] = 0;
-                    }
-                });
-                
-                localStorage.setItem('users', JSON.stringify(users));
-                alert('تم مسح جميع المكافآت بنجاح!');
-                loadBonusData();
+            } catch (error) {
+                console.error('Error updating stats:', error);
             }
         }
 
-        // إظهار مؤشر الحفظ
-        function showSaveIndicator() {
+        // Save all bonus data to Firebase
+        window.saveBonusData = async function() {
+            try {
+                showSyncIndicator();
+                
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, 'users'));
+                
+                if (snapshot.exists()) {
+                    const usersData = snapshot.val();
+                    const updates = {};
+                    
+                    Object.keys(usersData).forEach(emailKey => {
+                        for (let i = 1; i <= 6; i++) {
+                            const input = document.getElementById(`bonus_${emailKey}_${i}`);
+                            if (input) {
+                                updates[`users/${emailKey}/bonus${i}`] = parseFloat(input.value) || 0;
+                            }
+                        }
+                    });
+                    
+                    await update(ref(database), updates);
+                    
+                    alert('تم حفظ جميع المكافآت بنجاح!');
+                    loadBonusData();
+                }
+                
+            } catch (error) {
+                console.error('Error saving all bonuses:', error);
+                alert('حدث خطأ أثناء الحفظ. يرجى المحاولة مرة أخرى.');
+            }
+        }
+
+        // Reset all bonuses
+        window.resetAllBonuses = async function() {
+            if (confirm('هل أنت متأكد من مسح جميع المكافآت؟ لا يمكن التراجع عن هذا الإجراء.')) {
+                try {
+                    showSyncIndicator();
+                    
+                    const dbRef = ref(database);
+                    const snapshot = await get(child(dbRef, 'users'));
+                    
+                    if (snapshot.exists()) {
+                        const usersData = snapshot.val();
+                        const updates = {};
+                        
+                        Object.keys(usersData).forEach(emailKey => {
+                            for (let i = 1; i <= 6; i++) {
+                                updates[`users/${emailKey}/bonus${i}`] = 0;
+                            }
+                        });
+                        
+                        await update(ref(database), updates);
+                        
+                        alert('تم مسح جميع المكافآت بنجاح!');
+                        loadBonusData();
+                    }
+                    
+                } catch (error) {
+                    console.error('Error resetting bonuses:', error);
+                    alert('حدث خطأ أثناء مسح المكافآت. يرجى المحاولة مرة أخرى.');
+                }
+            }
+        }
+
+        // Show save indicator
+        window.showSaveIndicator = function() {
             const indicator = document.getElementById('saveIndicator');
             indicator.style.display = 'block';
             setTimeout(() => {
@@ -464,12 +598,14 @@
             }, 2000);
         }
 
-        // إضافة مستمع لتحديث البيانات عند تغيير localStorage
-        window.addEventListener('storage', function(e) {
-            if (e.key === 'users') {
-                loadBonusData();
-            }
-        });
+        // Show sync indicator
+        window.showSyncIndicator = function() {
+            const indicator = document.getElementById('syncIndicator');
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 1000);
+        }
     </script>
 </body>
 </html>
