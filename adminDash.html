@@ -244,46 +244,6 @@
             gap: 15px;
         }
 
-        .recent-activity {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .recent-activity h3 {
-            color: #205c6b;
-            margin-bottom: 20px;
-            font-size: 20px;
-            border-bottom: 3px solid #205c6b;
-            padding-bottom: 10px;
-        }
-
-        .activity-item {
-            padding: 15px;
-            border-radius: 10px;
-            background: #f8f9fa;
-            margin-bottom: 15px;
-            border-right: 4px solid #10b981;
-            transition: all 0.3s ease;
-        }
-
-        .activity-item:hover {
-            background: #e3f2fd;
-            transform: translateX(-5px);
-        }
-
-        .activity-time {
-            color: #666;
-            font-size: 12px;
-            float: left;
-        }
-
-        .activity-text {
-            color: #333;
-            font-weight: 500;
-        }
-
         .navigation-footer {
             background: linear-gradient(135deg, #374151, #4b5563);
             color: white;
@@ -501,27 +461,7 @@
             </div>
         </div>
 
-        <div class="recent-activity">
-            <h3>📊 النشاط الأخير</h3>
-            <div id="activityList">
-                <div class="activity-item">
-                    <div class="activity-time">منذ 5 دقائق</div>
-                    <div class="activity-text">تم تسجيل حضور 3 مشاركين جدد في المرحلة الثانية</div>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-time">منذ 15 دقيقة</div>
-                    <div class="activity-text">تم منح مكافأة للفريق الأول في المرحلة الثالثة</div>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-time">منذ ساعة</div>
-                    <div class="activity-text">تم فتح المرحلة الخامسة للفريق الثاني</div>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-time">منذ ساعتين</div>
-                    <div class="activity-text">تم حجز 12 مقعد جديد في المرحلة الأولى</div>
-                </div>
-            </div>
-        </div>
+
 
         <div class="navigation-footer">
             <div class="footer-links">
@@ -536,8 +476,8 @@
         </div>
     </div>
 
-    <script>
-        // Check if user is logged in and is admin
+    <script type="module">
+        // Check if user is logged in and is admin before initializing Firebase
         const currentUser = localStorage.getItem('currentUser');
         if (!currentUser) {
             alert('يجب تسجيل الدخول أولاً للوصول إلى هذه الصفحة');
@@ -545,128 +485,233 @@
             throw new Error('Unauthorized access');
         }
 
-        // تحميل البيانات عند بدء تشغيل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            // For adminDash, we'll do a simple check since it doesn't use Firebase directly
-            // This page should only be accessible via admin login redirect
-            if (!currentUser) {
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            loadDashboardData();
-            updateActivityFeed();
-            setInterval(refreshStats, 30000); // تحديث كل 30 ثانية
-        });
+        // Firebase configuration
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getDatabase, ref, get, child } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
 
-        // تحميل بيانات لوحة التحكم
-        function loadDashboardData() {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const attendanceData = JSON.parse(localStorage.getItem('attendanceData') || '{}');
-            const levelSettings = JSON.parse(localStorage.getItem('levelSettings') || '{}');
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHp8tHdlNoykCrMFZvl1gJKwcIGLcJ8gM",
+            authDomain: "journey03-ed32f.firebaseapp.com",
+            databaseURL: "https://journey03-ed32f-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "journey03-ed32f",
+            storageBucket: "journey03-ed32f.firebasestorage.app",
+            messagingSenderId: "637158543040",
+            appId: "1:637158543040:web:4ddfd0c0bc412cb6716725",
+            measurementId: "G-PPVXVYL8E2"
+        };
 
-            // حساب الإحصائيات
-            let totalBookings = 0;
-            let totalBonuses = 0;
-            let attendanceCount = 0;
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
-            users.forEach(user => {
-                if (user.bookings) {
-                    totalBookings += user.bookings.length;
+        // Check if user has admin privileges
+        async function verifyAdminAccess() {
+            try {
+                const emailKey = currentUser.replace(/\./g, '_').replace(/@/g, '_at_');
+                const userSnapshot = await get(child(ref(database), `users/${emailKey}`));
+                
+                if (!userSnapshot.exists()) {
+                    alert('المستخدم غير موجود');
+                    window.location.href = 'index.html';
+                    return false;
                 }
                 
-                // حساب المكافآت
-                for (let i = 1; i <= 6; i++) {
-                    totalBonuses += parseFloat(user[`bonus${i}`] || 0);
+                const user = userSnapshot.val();
+                if (user.role !== 'admin') {
+                    alert('غير مسموح لك بالوصول إلى هذه الصفحة. صفحة مخصصة للمشرفين فقط.');
+                    window.location.href = 'map4.html';
+                    return false;
                 }
+                
+                return true;
+            } catch (error) {
+                console.error('Error verifying admin access:', error);
+                alert('حدث خطأ في التحقق من الصلاحيات');
+                window.location.href = 'index.html';
+                return false;
+            }
+        }
 
-                // حساب الحضور
-                Object.keys(attendanceData).forEach(key => {
-                    if (key.includes(user.email) && attendanceData[key] === 'حاضر') {
-                        attendanceCount++;
+        // تحميل البيانات عند بدء تشغيل الصفحة
+        document.addEventListener('DOMContentLoaded', async function() {
+            const hasAdminAccess = await verifyAdminAccess();
+            if (hasAdminAccess) {
+                await loadDashboardData();
+                setInterval(refreshStats, 30000); // تحديث كل 30 ثانية
+            }
+        });
+
+        // تحميل بيانات لوحة التحكم من Firebase
+        async function loadDashboardData() {
+            try {
+                const dbRef = ref(database);
+                
+                // Load all data from Firebase
+                const [usersSnapshot, attendanceSnapshot, levelSettingsSnapshot] = await Promise.all([
+                    get(child(dbRef, 'users')),
+                    get(child(dbRef, 'attendanceData')),
+                    get(child(dbRef, 'levelSettings'))
+                ]);
+
+                const users = usersSnapshot.exists() ? Object.values(usersSnapshot.val()) : [];
+                const attendanceData = attendanceSnapshot.exists() ? attendanceSnapshot.val() : {};
+                const levelSettings = levelSettingsSnapshot.exists() ? levelSettingsSnapshot.val() : {};
+
+                // حساب الإحصائيات
+                let totalBookings = 0;
+                let totalBonuses = 0;
+                let attendedUsers = 0;
+
+                users.forEach(user => {
+                    if (user.bookings) {
+                        totalBookings += user.bookings.length;
+                    }
+                    
+                    // حساب المكافآت
+                    for (let i = 1; i <= 6; i++) {
+                        totalBonuses += parseFloat(user[`bonus${i}`] || 0);
+                    }
+
+                    // حساب الحضور - check if user has attended any session
+                    let userAttended = false;
+                    for (let i = 1; i <= 6; i++) {
+                        const userBookings = user.bookings || [];
+                        userBookings.forEach(booking => {
+                            const attendanceKey = `${user.email}_level${i}`;
+                            if (attendanceData[attendanceKey] === 'present' || attendanceData[attendanceKey] === 'حاضر') {
+                                userAttended = true;
+                            }
+                        });
+                    }
+                    if (userAttended) {
+                        attendedUsers++;
                     }
                 });
-            });
 
-            // تحديث الإحصائيات في واجهة المستخدم
-            document.getElementById('totalUsers').textContent = users.length;
-            document.getElementById('totalBookings').textContent = totalBookings;
-            document.getElementById('totalBonuses').textContent = Math.round(totalBonuses);
-            
-            const attendanceRate = totalBookings > 0 ? Math.round((attendanceCount / totalBookings) * 100) : 0;
-            document.getElementById('attendanceRate').textContent = attendanceRate + '%';
+                // تحديث الإحصائيات في واجهة المستخدم
+                document.getElementById('totalUsers').textContent = users.length;
+                document.getElementById('totalBookings').textContent = totalBookings;
+                document.getElementById('totalBonuses').textContent = Math.round(totalBonuses);
+                
+                // Calculate attendance rate as percentage of users who attended vs total users
+                const attendanceRate = users.length > 0 ? Math.round((attendedUsers / users.length) * 100) : 0;
+                document.getElementById('attendanceRate').textContent = attendanceRate + '%';
 
-            // تحديث وقت آخر تحديث
-            document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
+                // تحديث وقت آخر تحديث
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ar-EG');
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                // Show error message to user
+                document.getElementById('lastUpdate').textContent = 'خطأ في التحميل';
+                showNotification('خطأ في تحميل البيانات', 'error');
+            }
         }
 
-        // تحديث خلاصة النشاط
-        function updateActivityFeed() {
-            const activities = [
-                'تم تسجيل مستخدم جديد في النظام',
-                'تم إضافة حجز جديد للمرحلة الرابعة',
-                'تم منح مكافأة جديدة للفريق الثالث',
-                'تم تحديث إعدادات المراحل',
-                'تم حفظ بيانات الحضور الجديدة'
-            ];
 
-            // محاكاة نشاط عشوائي
-            const randomActivity = activities[Math.floor(Math.random() * activities.length)];
-            const timeAgo = Math.floor(Math.random() * 60) + 1;
-            
-            // يمكن هنا إضافة منطق لتتبع النشاط الحقيقي
-        }
 
         // تحديث الإحصائيات
-        function refreshStats() {
-            loadDashboardData();
+        async function refreshStats() {
+            await loadDashboardData();
         }
 
         // تحديث جميع البيانات
-        function refreshAllData() {
+        async function refreshAllData() {
             document.body.classList.add('loading');
             
-            setTimeout(() => {
-                loadDashboardData();
-                updateActivityFeed();
-                document.body.classList.remove('loading');
+            try {
+                await loadDashboardData();
                 
                 // عرض رسالة نجاح
                 showNotification('تم تحديث جميع البيانات بنجاح!', 'success');
-            }, 1000);
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+                showNotification('خطأ في تحديث البيانات', 'error');
+            } finally {
+                document.body.classList.remove('loading');
+            }
         }
 
-        // تصدير البيانات
-        function exportData() {
-            const allData = {
-                users: JSON.parse(localStorage.getItem('users') || '[]'),
-                attendance: JSON.parse(localStorage.getItem('attendanceData') || '{}'),
-                levelSettings: JSON.parse(localStorage.getItem('levelSettings') || '{}'),
-                exportDate: new Date().toISOString()
-            };
+        // تصدير البيانات من Firebase
+        async function exportData() {
+            try {
+                document.body.classList.add('loading');
+                
+                const dbRef = ref(database);
+                
+                // Load all data from Firebase
+                const [usersSnapshot, attendanceSnapshot, levelSettingsSnapshot] = await Promise.all([
+                    get(child(dbRef, 'users')),
+                    get(child(dbRef, 'attendanceData')),
+                    get(child(dbRef, 'levelSettings'))
+                ]);
 
-            const dataStr = JSON.stringify(allData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = `train-journey-data-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            showNotification('تم تصدير البيانات بنجاح!', 'info');
+                const allData = {
+                    users: usersSnapshot.exists() ? usersSnapshot.val() : {},
+                    attendance: attendanceSnapshot.exists() ? attendanceSnapshot.val() : {},
+                    levelSettings: levelSettingsSnapshot.exists() ? levelSettingsSnapshot.val() : {},
+                    exportDate: new Date().toISOString(),
+                    exportBy: currentUser
+                };
+
+                const dataStr = JSON.stringify(allData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `journey03-data-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                showNotification('تم تصدير البيانات بنجاح!', 'success');
+                
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                showNotification('خطأ في تصدير البيانات', 'error');
+            } finally {
+                document.body.classList.remove('loading');
+            }
         }
 
-        // نسخ احتياطي
-        function backupData() {
-            const backupKey = `backup_${Date.now()}`;
-            const allData = {
-                users: localStorage.getItem('users'),
-                attendance: localStorage.getItem('attendanceData'),
-                levelSettings: localStorage.getItem('levelSettings')
-            };
-            
-            localStorage.setItem(backupKey, JSON.stringify(allData));
-            showNotification('تم إنشاء نسخة احتياطية بنجاح!', 'success');
+        // النسخ الاحتياطي إلى Firebase وLocalStorage
+        async function backupData() {
+            try {
+                document.body.classList.add('loading');
+                
+                const dbRef = ref(database);
+                const backupPath = `backups/backup_${Date.now()}`;
+                
+                // Load current data from Firebase
+                const [usersSnapshot, attendanceSnapshot, levelSettingsSnapshot, adminSettingsSnapshot] = await Promise.all([
+                    get(child(dbRef, 'users')),
+                    get(child(dbRef, 'attendanceData')),
+                    get(child(dbRef, 'levelSettings')),
+                    get(child(dbRef, 'adminSettings'))
+                ]);
+
+                const backupData = {
+                    users: usersSnapshot.exists() ? usersSnapshot.val() : {},
+                    attendanceData: attendanceSnapshot.exists() ? attendanceSnapshot.val() : {},
+                    levelSettings: levelSettingsSnapshot.exists() ? levelSettingsSnapshot.val() : {},
+                    adminSettings: adminSettingsSnapshot.exists() ? adminSettingsSnapshot.val() : {},
+                    backupDate: new Date().toISOString(),
+                    backupBy: currentUser
+                };
+
+                // Save backup to Firebase
+                await set(ref(database, backupPath), backupData);
+                
+                // Also save to localStorage as secondary backup
+                localStorage.setItem('lastBackup', JSON.stringify(backupData));
+                localStorage.setItem('lastBackupDate', new Date().toISOString());
+                
+                showNotification('تم إنشاء النسخة الاحتياطية بنجاح!', 'success');
+                
+            } catch (error) {
+                console.error('Error creating backup:', error);
+                showNotification('خطأ في إنشاء النسخة الاحتياطية', 'error');
+            } finally {
+                document.body.classList.remove('loading');
+            }
         }
 
         // عرض التقارير
@@ -758,8 +803,16 @@
         `;
         document.head.appendChild(style);
 
-        // تحديث النشاط كل دقيقة
-        setInterval(updateActivityFeed, 60000);
+        // Make functions available globally
+        window.refreshAllData = refreshAllData;
+        window.exportData = exportData;
+        window.backupData = backupData;
+        window.viewReports = viewReports;
+        window.generateAttendanceReport = generateAttendanceReport;
+        window.generateBonusReport = generateBonusReport;
+        window.quickLockAll = quickLockAll;
+        window.quickUnlockAll = quickUnlockAll;
+        window.previewMode = previewMode;
     </script>
 </body>
 </html>
