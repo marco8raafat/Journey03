@@ -537,8 +537,23 @@
     </div>
 
     <script>
+        // Check if user is logged in and is admin
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) {
+            alert('يجب تسجيل الدخول أولاً للوصول إلى هذه الصفحة');
+            window.location.href = 'index.html';
+            throw new Error('Unauthorized access');
+        }
+
         // تحميل البيانات عند بدء تشغيل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
+            // For adminDash, we'll do a simple check since it doesn't use Firebase directly
+            // This page should only be accessible via admin login redirect
+            if (!currentUser) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
             loadDashboardData();
             updateActivityFeed();
             setInterval(refreshStats, 30000); // تحديث كل 30 ثانية

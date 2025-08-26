@@ -327,6 +327,14 @@
 
     <!-- Firebase SDK -->
     <script type="module">
+        // Check if user is logged in and is admin before initializing Firebase
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) {
+            alert('يجب تسجيل الدخول أولاً للوصول إلى هذه الصفحة');
+            window.location.href = 'index.html';
+            throw new Error('Unauthorized access');
+        }
+
         // Firebase configuration
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
         import { getDatabase, ref, set, get, child, update } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
@@ -345,6 +353,34 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
+
+        // Check if user has admin privileges
+        async function verifyAdminAccess() {
+            try {
+                const emailKey = currentUser.replace(/\./g, '_').replace(/@/g, '_at_');
+                const userSnapshot = await get(child(ref(database), `users/${emailKey}`));
+                
+                if (!userSnapshot.exists()) {
+                    alert('المستخدم غير موجود');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+                
+                const user = userSnapshot.val();
+                if (user.role !== 'admin') {
+                    alert('غير مسموح لك بالوصول إلى هذه الصفحة. صفحة مخصصة للمشرفين فقط.');
+                    window.location.href = 'map4.html';
+                    return false;
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error verifying admin access:', error);
+                alert('حدث خطأ في التحقق من الصلاحيات');
+                window.location.href = 'index.html';
+                return false;
+            }
+        }
 
         // Global variables for Firebase operations
         window.database = database;
@@ -365,8 +401,11 @@
         ];
 
         // Load data when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            loadBookings();
+        document.addEventListener('DOMContentLoaded', async function() {
+            const hasAdminAccess = await verifyAdminAccess();
+            if (hasAdminAccess) {
+                loadBookings();
+            }
         });
 
         // Load bookings and attendance data from Firebase
