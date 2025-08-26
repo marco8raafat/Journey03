@@ -607,9 +607,9 @@
         // Check if level is unlocked
         function isLevelUnlocked(teamName, levelId) {
             if (!levelSettings[teamName]) {
-                return true; // Default to unlocked
+                return false; // Default to locked for new teams
             }
-            return levelSettings[teamName][levelId] !== false;
+            return levelSettings[teamName][levelId] === true;
         }
 
         // Toggle level status
@@ -694,12 +694,12 @@
             try {
                 const snapshot = await get(ref(database, `levelSettings/${userTeam}/${levelId}`));
                 if (snapshot.exists()) {
-                    return snapshot.val() !== false;
+                    return snapshot.val() === true;
                 }
-                return true; // Default to unlocked
+                return false; // Default to locked for new teams
             } catch (error) {
                 console.error('Error checking level access:', error);
-                return true; // Default to allow access on error
+                return false; // Default to deny access on error
             }
         }
 
