@@ -438,6 +438,30 @@
             color: #ff6b6b;
         }
 
+        /* Loading indicator */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 2000;
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
         /* Progress bar */
         .progress-container {
             position: fixed;
@@ -550,6 +574,47 @@
         <div class="progress-bar" id="progressBar"></div>
     </div>
 
+    <!-- Loading indicator -->
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <div>جاري التحميل...</div>
+    </div>
+
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Firebase configuration
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get, set, update, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBHp8tHdlNoykCrMFZvl1gJKwcIGLcJ8gM",
+    authDomain: "journey03-ed32f.firebaseapp.com",
+    databaseURL: "https://journey03-ed32f-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "journey03-ed32f",
+    storageBucket: "journey03-ed32f.firebasestorage.app",
+    messagingSenderId: "637158543040",
+    appId: "1:637158543040:web:4ddfd0c0bc412cb6716725",
+    measurementId: "G-PPVXVYL8E2"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Make Firebase functions globally available
+        window.database = database;
+        window.firebaseRef = ref;
+        window.firebaseGet = get;
+        window.firebaseSet = set;
+        window.firebaseUpdate = update;
+        window.firebaseChild = child;
+        
+        // Signal that Firebase is ready
+        window.firebaseReady = true;
+        
+        // Dispatch custom event when Firebase is ready
+        window.dispatchEvent(new CustomEvent('firebaseReady'));
+    </script>
 
     <section class="stage">
         <div class="sky">
@@ -643,7 +708,6 @@
 
 
 
-
     <script>
         let isPlaying = true;
         let currentStation = 1;
@@ -680,22 +744,63 @@
         const playPauseBtn = document.getElementById('playPauseBtn');
         const progressBar = document.getElementById('progressBar');
 
+        // Utility functions for loading states
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
         // Initialize on page load
+        async function initializePage() {
+            try {
+                await updateMaxAllowedStation();
+                updateTrainPosition();
+                
+                // Set initial train position to station 1
+                if (journeyProgress === 0) {
+                    journeyProgress = 10; // Start at station 1 position
+                    const progressRatio = journeyProgress / 100;
+                    train.style.setProperty('--progress-ratio', progressRatio);
+                    progressBar.style.width = `${(journeyProgress / 95) * 100}%`;
+                }
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                hideLoading();
+            }
+        }
+
+        // Wait for Firebase to load, then initialize
         document.addEventListener('DOMContentLoaded', function() {
-            updateMaxAllowedStation();
-            updateTrainPosition();
-            
-            // Set initial train position to station 1
-            if (journeyProgress === 0) {
-                journeyProgress = 10; // Start at station 1 position
-                const progressRatio = journeyProgress / 100;
-                train.style.setProperty('--progress-ratio', progressRatio);
-                progressBar.style.width = `${(journeyProgress / 95) * 100}%`;
+            // Check if Firebase is already ready
+            if (window.firebaseReady) {
+                initializePage();
+            } else {
+                // Wait for Firebase ready event
+                window.addEventListener('firebaseReady', initializePage);
+                
+                // Fallback timeout after 5 seconds
+                setTimeout(() => {
+                    if (!window.firebaseReady) {
+                        console.error('Firebase failed to load within timeout');
+                        hideLoading();
+                        // Initialize with defaults (no Firebase functionality)
+                        updateTrainPosition();
+                        if (journeyProgress === 0) {
+                            journeyProgress = 10;
+                            const progressRatio = journeyProgress / 100;
+                            train.style.setProperty('--progress-ratio', progressRatio);
+                            progressBar.style.width = `${(journeyProgress / 95) * 100}%`;
+                        }
+                    }
+                }, 5000);
             }
         });
 
         // Function to get the highest accessible station for current user's team
-        function updateMaxAllowedStation() {
+        async function updateMaxAllowedStation() {
             const currentUser = localStorage.getItem('currentUser');
             if (!currentUser) {
                 maxAllowedStation = 6; // Default all open if no user
@@ -703,51 +808,112 @@
                 return;
             }
 
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.email === currentUser);
-            
-            if (!user || !user.team) {
-                maxAllowedStation = 6; // Default all open if no team
+            // Check if Firebase is available
+            if (!window.firebaseReady || !window.database) {
+                console.log('Firebase not ready, using defaults');
+                maxAllowedStation = 6; // Default all open if Firebase not ready
                 updateStationVisuals();
                 return;
             }
 
-            // Find the last consecutive accessible station starting from level 1
-            maxAllowedStation = 1; // Start with level 1 as minimum
-            
-            // Check each level consecutively from 1 upward
-            for (let station = 1; station <= 6; station++) {
-                if (canAccessLevel(user.team, station)) {
-                    maxAllowedStation = station; // Update to this station if accessible
-                } else {
-                    // Stop at first locked station - don't go beyond it
-                    break;
+            try {
+                showLoading();
+                
+                // Create email key for Firebase
+                const emailKey = currentUser.replace(/\./g, '_').replace(/@/g, '_at_');
+                
+                // Get user data from Firebase
+                const dbRef = window.firebaseRef(window.database);
+                const userSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, `users/${emailKey}`));
+                
+                if (!userSnapshot.exists()) {
+                    maxAllowedStation = 6; // Default all open if no user data
+                    updateStationVisuals();
+                    return;
                 }
-            updateStationVisuals();
+                
+                const user = userSnapshot.val();
+                
+                if (!user || !user.team) {
+                    maxAllowedStation = 6; // Default all open if no team
+                    updateStationVisuals();
+                    return;
+                }
+
+                // Get level settings from Firebase
+                const levelSettingsSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, `levelSettings/${user.team}`));
+                const teamSettings = levelSettingsSnapshot.exists() ? levelSettingsSnapshot.val() : {};
+
+                // Find the last consecutive accessible station starting from level 1
+                maxAllowedStation = 1; // Start with level 1 as minimum
+                
+                // Check each level consecutively from 1 upward
+                for (let station = 1; station <= 6; station++) {
+                    if (canAccessLevel(teamSettings, station)) {
+                        maxAllowedStation = station; // Update to this station if accessible
+                    } else {
+                        // Stop at first locked station - don't go beyond it
+                        break;
+                    }
+                }
+                updateStationVisuals(user.team);
+                
+            } catch (error) {
+                console.error('Error updating max allowed station:', error);
+                maxAllowedStation = 6; // Default all open on error
+                updateStationVisuals();
+            } finally {
+                hideLoading();
             }
         }
 
         // Function to update station visual appearance based on lock status
-        function updateStationVisuals() {
+        async function updateStationVisuals(userTeam = null) {
             const currentUser = localStorage.getItem('currentUser');
             if (!currentUser) return;
 
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.email === currentUser);
-            
-            if (!user || !user.team) return;
+            // Check if Firebase is available
+            if (!window.firebaseReady || !window.database) {
+                console.log('Firebase not ready for station visuals');
+                return;
+            }
 
-            // Update each station's appearance
-            for (let station = 1; station <= 6; station++) {
-                const stationElement = document.querySelector(`[data-station="${station}"]`);
-                if (stationElement) {
-                    const isAccessible = canAccessLevel(user.team, station);
-                    if (isAccessible) {
-                        stationElement.classList.remove('locked');
-                    } else {
-                        stationElement.classList.add('locked');
+            try {
+                let team = userTeam;
+                
+                if (!team) {
+                    // Get user team from Firebase if not provided
+                    const emailKey = currentUser.replace(/\./g, '_').replace(/@/g, '_at_');
+                    const dbRef = window.firebaseRef(window.database);
+                    const userSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, `users/${emailKey}`));
+                    
+                    if (!userSnapshot.exists()) return;
+                    const user = userSnapshot.val();
+                    team = user.team;
+                }
+                
+                if (!team) return;
+
+                // Get level settings from Firebase
+                const dbRef = window.firebaseRef(window.database);
+                const levelSettingsSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, `levelSettings/${team}`));
+                const teamSettings = levelSettingsSnapshot.exists() ? levelSettingsSnapshot.val() : {};
+
+                // Update each station's appearance
+                for (let station = 1; station <= 6; station++) {
+                    const stationElement = document.querySelector(`[data-station="${station}"]`);
+                    if (stationElement) {
+                        const isAccessible = canAccessLevel(teamSettings, station);
+                        if (isAccessible) {
+                            stationElement.classList.remove('locked');
+                        } else {
+                            stationElement.classList.add('locked');
+                        }
                     }
                 }
+                
+            } catch (error) {
+                console.error('Error updating station visuals:', error);
             }
         }
 
@@ -804,17 +970,26 @@
             }
         }
 
-        function toggleLevelInfo(levelNumber) {
+        async function toggleLevelInfo(levelNumber) {
             // Check if user is logged in and get their team
             const currentUser = localStorage.getItem('currentUser');
             if (currentUser) {
-                const users = JSON.parse(localStorage.getItem('users') || '[]');
-                const user = users.find(u => u.email === currentUser);
-                
-                // Check if level is locked for this user's team
-                if (user && user.team && !canAccessLevel(user.team, levelNumber)) {
-                    alert('هذه المرحلة مغلقة حالياً لفريقك. يرجى المحاولة لاحقاً.');
-                    return;
+                try {
+                    const emailKey = currentUser.replace(/\./g, '_').replace(/@/g, '_at_');
+                    const dbRef = window.firebaseRef(window.database);
+                    const userSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, `users/${emailKey}`));
+                    
+                    if (userSnapshot.exists()) {
+                        const user = userSnapshot.val();
+                        
+                        // Check if level is locked for this user's team
+                        if (user && user.team && !(await canAccessLevelFromFirebase(user.team, levelNumber))) {
+                            alert('هذه المرحلة مغلقة حالياً لفريقك. يرجى المحاولة لاحقاً.');
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking user access:', error);
                 }
             }
             
@@ -851,7 +1026,7 @@
             levelInfo.classList.remove('show');
         }
 
-        function bookLevel(levelNumber, event) {
+        async function bookLevel(levelNumber, event) {
             // Prevent the station click event from firing
             event.stopPropagation();
             
@@ -863,76 +1038,123 @@
                 return;
             }
             
-            // Get user data to check team access
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find(u => u.email === currentUser);
-            
-            // Check if level is locked for this user's team
-            if (user && user.team && !canAccessLevel(user.team, levelNumber)) {
-                alert('هذه المرحلة مغلقة حالياً لفريقك. لا يمكن حجزها الآن.');
-                return;
-            }
-            
-            // Get level information
-            const levelNames = {
-                1: "Introduction to Computing",
-                2: "Programming Fundamentals", 
-                3: "Data Structures & Algorithms",
-                4: "Object-Oriented Programming",
-                5: "Web Development",
-                6: "Advanced Programming"
-            };
-            
-            const levelName = levelNames[levelNumber];
-            
-            // Check if already booked
-            if (user && user.bookings) {
-                const existingBooking = user.bookings.find(b => b.levelId == levelNumber);
-                if (existingBooking) {
-                    alert(`لقد قمت بحجز "${levelName}" مسبقاً في ${new Date(existingBooking.bookingDate).toLocaleDateString('ar-EG')}`);
+            try {
+                // Get user data from Firebase to check team access
+                const emailKey = currentUser.replace(/\./g, '_').replace(/@/g, '_at_');
+                const dbRef = window.firebaseRef(window.database);
+                const userSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, `users/${emailKey}`));
+                
+                if (!userSnapshot.exists()) {
+                    alert('بيانات المستخدم غير موجودة');
                     return;
                 }
-            }
-            
-            // Show booking confirmation
-            if (confirm(`حجز "${levelName}" (المرحلة ${levelNumber})؟\n\nسيتم تسجيل الحجز تلقائياً في النظام.`)) {
-                // Add booking to user's record
-                addBookingToUser(currentUser, levelNumber, levelName);
                 
-                // Show success message
-                alert(`تم تأكيد الحجز للمرحلة ${levelNumber}: ${levelName}!\n\nيمكنك مراجعة حجوزاتك في الملف الشخصي.`);
+                const user = userSnapshot.val();
+                
+                // Check if level is locked for this user's team
+                if (user && user.team && !(await canAccessLevelFromFirebase(user.team, levelNumber))) {
+                    alert('هذه المرحلة مغلقة حالياً لفريقك. لا يمكن حجزها الآن.');
+                    return;
+                }
+                
+                // Get level information
+                const levelNames = {
+                    1: "Introduction to Computing",
+                    2: "Programming Fundamentals", 
+                    3: "Data Structures & Algorithms",
+                    4: "Object-Oriented Programming",
+                    5: "Web Development",
+                    6: "Advanced Programming"
+                };
+                
+                const levelName = levelNames[levelNumber];
+                
+                // Check if already booked
+                if (user && user.bookings) {
+                    const existingBooking = user.bookings.find(b => b.levelId == levelNumber);
+                    if (existingBooking) {
+                        alert(`لقد قمت بحجز "${levelName}" مسبقاً في ${new Date(existingBooking.bookingDate).toLocaleDateString('ar-EG')}`);
+                        return;
+                    }
+                }
+                
+                // Show booking confirmation
+                if (confirm(`حجز "${levelName}" (المرحلة ${levelNumber})؟\n\nسيتم تسجيل الحجز تلقائياً في النظام.`)) {
+                    // Add booking to user's record in Firebase
+                    await addBookingToUserFirebase(currentUser, levelNumber, levelName);
+                    
+                    // Show success message
+                    alert(`تم تأكيد الحجز للمرحلة ${levelNumber}: ${levelName}!\n\nيمكنك مراجعة حجوزاتك في الملف الشخصي.`);
+                }
+                
+            } catch (error) {
+                console.error('Error booking level:', error);
+                alert('حدث خطأ أثناء الحجز. يرجى المحاولة مرة أخرى.');
             }
         }
 
-        // Add booking to user's record
-        function addBookingToUser(userEmail, levelId, levelName) {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const userIndex = users.findIndex(u => u.email === userEmail);
-            
-            if (userIndex !== -1) {
-                if (!users[userIndex].bookings) {
-                    users[userIndex].bookings = [];
+        // Add booking to user's record in Firebase
+        async function addBookingToUserFirebase(userEmail, levelId, levelName) {
+            try {
+                const emailKey = userEmail.replace(/\./g, '_').replace(/@/g, '_at_');
+                const userRef = window.firebaseRef(window.database, `users/${emailKey}`);
+                
+                // Get current user data
+                const snapshot = await window.firebaseGet(userRef);
+                
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    const bookings = userData.bookings || [];
+                    
+                    const levelDates = {
+                        1: "February 15, 2024",
+                        2: "February 20, 2024",
+                        3: "February 28, 2024",
+                        4: "March 5, 2024",
+                        5: "March 10, 2024",
+                        6: "March 15, 2024"
+                    };
+                    
+                    bookings.push({
+                        levelId: levelId,
+                        name: levelName,
+                        bookingDate: new Date().toISOString(),
+                        date: levelDates[levelId],
+                        time: '09:00'
+                    });
+                    
+                    // Update bookings in Firebase
+                    await window.firebaseUpdate(window.firebaseRef(window.database), {
+                        [`users/${emailKey}/bookings`]: bookings
+                    });
                 }
-                
-                const levelDates = {
-                    1: "February 15, 2024",
-                    2: "February 20, 2024",
-                    3: "February 28, 2024",
-                    4: "March 5, 2024",
-                    5: "March 10, 2024",
-                    6: "March 15, 2024"
-                };
-                
-                users[userIndex].bookings.push({
-                    levelId: levelId,
-                    name: levelName,
-                    bookingDate: new Date().toISOString(),
-                    date: levelDates[levelId],
-                    time: '09:00'
-                });
-                
-                localStorage.setItem('users', JSON.stringify(users));
+            } catch (error) {
+                console.error('Error adding booking to Firebase:', error);
+                throw error;
             }
+        }
+
+        // Function to check if user's team can access a level from Firebase
+        async function canAccessLevelFromFirebase(userTeam, levelId) {
+            try {
+                const dbRef = window.firebaseRef(window.database);
+                const snapshot = await window.firebaseGet(window.firebaseChild(dbRef, `levelSettings/${userTeam}/${levelId}`));
+                if (snapshot.exists()) {
+                    return snapshot.val() !== false;
+                }
+                return true; // Default to unlocked
+            } catch (error) {
+                console.error('Error checking level access:', error);
+                return true; // Default to allow access on error
+            }
+        }
+
+        // Legacy function to check if user's team can access a level (for local settings object)
+        function canAccessLevel(teamSettings, levelId) {
+            if (!teamSettings) {
+                return true; // Default: all levels unlocked
+            }
+            return teamSettings[levelId] !== false;
         }
 
         function updateProgress() {
@@ -1004,18 +1226,17 @@
         }, 1000);
 
         // Update max allowed station when level settings change  
-        setInterval(() => {
-            updateMaxAllowedStation();
+        setInterval(async () => {
+            await updateMaxAllowedStation();
             updateTrainPosition();
-        }, 2000);
+        }, 5000); // Increased interval for Firebase calls
 
-        // Function to check if user's team can access a level
-        function canAccessLevel(userTeam, levelId) {
-            const settings = JSON.parse(localStorage.getItem('levelSettings') || '{}');
-            if (!settings[userTeam]) {
+        // Function to check if user's team can access a level (legacy for backward compatibility)
+        function canAccessLevel(teamSettings, levelId) {
+            if (!teamSettings) {
                 return true; // Default: all levels unlocked
             }
-            return settings[userTeam][levelId] !== false;
+            return teamSettings[levelId] !== false;
         }
 
         // Prevent zoom on double tap
