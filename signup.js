@@ -25,8 +25,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const adminTokenWrapper = document.getElementById('adminTokenWrapper');
     const adminTokenInput = document.getElementById('adminToken');
 
-    // Simple hard-coded admin token (you can change / externalize later)
-    const ADMIN_TOKEN = 'TRAIN-ADMIN-2025';
+    // Admin token will be fetched from Firebase
+    let ADMIN_TOKEN = null;
+
+    // Fetch admin token from Firebase on page load
+    async function loadAdminToken() {
+        try {
+            const tokenRef = ref(database, 'adminSettings/token');
+            const snapshot = await get(tokenRef);
+            
+            if (snapshot.exists()) {
+                // Convert to string to handle both number and string tokens from Firebase
+                ADMIN_TOKEN = String(snapshot.val());
+                console.log('Admin token loaded from Firebase:', ADMIN_TOKEN);
+            } else {
+                // No token exists in Firebase - admin registration will be disabled
+                ADMIN_TOKEN = null;
+                console.log('No admin token found in Firebase - admin registration disabled');
+            }
+        } catch (error) {
+            console.error('Error loading admin token:', error);
+            // Set to null if Firebase fails - no fallback token
+            ADMIN_TOKEN = null;
+            alert('تعذر تحميل رمز الأدمن من الخادم. لا يمكن إنشاء حسابات أدمن حالياً.');
+        }
+    }
+
+
+    // Load the admin token when page loads
+    loadAdminToken();
 
     // Show/hide token field based on role
     roleSelect.addEventListener('change', () => {
@@ -60,8 +87,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('الرجاء إدخال رمز الأدمن');
                 return;
             }
-            if (providedToken !== ADMIN_TOKEN) {
+            
+            // Check if admin token exists in Firebase
+            if (ADMIN_TOKEN === null) {
+                alert('لا يوجد رمز أدمن مُعرَّف في النظام. لا يمكن إنشاء حسابات أدمن حالياً.');
+                console.log('Admin registration blocked - no token configured');
+                return;
+            }
+            
+            // Convert both tokens to strings for comparison to handle number tokens from Firebase
+            const providedTokenStr = String(providedToken);
+            const adminTokenStr = String(ADMIN_TOKEN);
+            
+            console.log('Comparing tokens:', providedTokenStr, 'vs', adminTokenStr);
+            
+            if (providedTokenStr !== adminTokenStr) {
                 alert('رمز الأدمن غير صحيح');
+                console.log('Token mismatch - provided:', providedTokenStr, 'expected:', adminTokenStr);
                 return;
             }
         }
