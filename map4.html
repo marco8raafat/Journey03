@@ -10,8 +10,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-
-    html, body {height:100%; width:100%; overflow:hidden; font-family: -apple-system, BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; touch-action:manipulation; -webkit-font-smoothing:antialiased;}
+    html, body { width:100%;  font-family: -apple-system, BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; touch-action:manipulation; -webkit-font-smoothing:antialiased;}
 
         body {
             background: linear-gradient(180deg, #87CEEB 0%, #cce6fd 100%);
@@ -26,7 +25,7 @@
             left: 0;
             right: 0;
             height: 60px;
-            background: rgba(32, 92, 107, 0.49);
+            background: linear-gradient(135deg, rgba(25, 118, 210, 0.95), rgba(33, 150, 243, 0.95));
             z-index: 100;
             display: flex;
             align-items: center;
@@ -1278,7 +1277,6 @@ const firebaseConfig = {
                 playPauseBtn.classList.remove('active');
             } else {
                 train.style.animationPlayState = 'paused';
-                playPauseBtn.innerHTML = '▶️';
                 playPauseBtn.classList.add('active');
             }
         }
@@ -1640,7 +1638,7 @@ const firebaseConfig = {
         setInterval(async () => {
             await updateMaxAllowedStation();
             updateTrainPosition();
-        }, 5000); // Increased interval for Firebase calls
+        }, 3600000); // Increased interval for Firebase calls
 
         // Refresh ticket counts periodically for real-time updates
         setInterval(async () => {
