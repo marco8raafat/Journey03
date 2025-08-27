@@ -491,6 +491,19 @@
         let levelSettings = {};
         let users = [];
 
+        // Predefined list of all available teams
+        const availableTeams = [
+            'مكيف',
+            'مجري', 
+            'اشاش',
+            'اسباني',
+            'روسي',
+            'نوم',
+            'تانجو',
+            'بضايع',
+            'vip'
+        ];
+
         // Utility functions
         function showLoading() {
             document.getElementById('loading').style.display = 'block';
@@ -559,17 +572,28 @@
         function updateTeamSelect() {
             const teamSelect = document.getElementById('teamSelect');
             
-            // Get unique teams
-            const teams = [...new Set(users.map(user => user.team).filter(team => team))];
+            // Get teams that actually have users
+            const teamsWithUsers = [...new Set(users.map(user => user.team).filter(team => team))];
             
             // Clear current options
             teamSelect.innerHTML = '<option value="">-- اختر الفريق --</option>';
             
-            // Add teams to dropdown
-            teams.forEach(team => {
+            // Add all available teams to dropdown
+            availableTeams.forEach(team => {
                 const option = document.createElement('option');
                 option.value = team;
-                option.textContent = team;
+                
+                // Show if team has users or not
+                const hasUsers = teamsWithUsers.includes(team);
+                const userCount = users.filter(user => user.team === team).length;
+                
+                if (hasUsers) {
+                    option.textContent = `${team} (${userCount} عضو)`;
+                } else {
+                    option.textContent = `${team} (لا يوجد أعضاء)`;
+                    option.style.color = '#999';
+                }
+                
                 teamSelect.appendChild(option);
             });
         }
@@ -600,13 +624,23 @@
             const teamMembers = users.filter(user => user.team === teamName);
             
             const teamInfo = document.getElementById('teamInfo');
-            teamInfo.innerHTML = `
-                <div class="team-name">${teamName}</div>
-                <div class="team-members">
-                    عدد الأعضاء: ${teamMembers.length} | 
-                    الأعضاء: ${teamMembers.map(m => m.name).join('، ')}
-                </div>
-            `;
+            if (teamMembers.length > 0) {
+                teamInfo.innerHTML = `
+                    <div class="team-name">${teamName}</div>
+                    <div class="team-members">
+                        عدد الأعضاء: ${teamMembers.length} | 
+                        الأعضاء: ${teamMembers.map(m => m.name).join('، ')}
+                    </div>
+                `;
+            } else {
+                teamInfo.innerHTML = `
+                    <div class="team-name">${teamName}</div>
+                    <div class="team-members">
+                        عدد الأعضاء: 0 | 
+                        لا توجد أعضاء مسجلة في هذا الفريق حتى الآن
+                    </div>
+                `;
+            }
         }
 
         // Display levels
