@@ -112,14 +112,65 @@
             padding: 30px;
             border-bottom: 2px solid rgba(238, 238, 238, 0.5);
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
+            grid-template-columns: auto 1fr;
+            gap: 20px;
             align-items: center;
             background: rgba(255, 255, 255, 0.8);
         }
 
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 2px solid rgba(25, 118, 210, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #1976D2;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #E0E0E0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            background: white;
+            color: #333;
+            min-width: 150px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            border-color: #1976D2;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+        }
+
+        .filter-select:hover {
+            border-color: #1976D2;
+        }
+
+        .filter-count {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+            background: rgba(25, 118, 210, 0.1);
+            padding: 4px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+
         .last-update-info {
-            grid-column: 1 / -1;
             text-align: center;
             color: #666;
             font-size: 14px;
@@ -253,6 +304,15 @@
             background: rgba(25, 118, 210, 0.05) !important;
         }
 
+        .team-cell {
+            text-align: center;
+            font-weight: 600;
+            color: #607D8B;
+            background: rgba(96, 125, 139, 0.1) !important;
+            border-left: 2px solid rgba(96, 125, 139, 0.2);
+            border-right: 2px solid rgba(96, 125, 139, 0.2);
+        }
+
         .bonus-cell {
             position: relative;
         }
@@ -281,13 +341,13 @@
             background: linear-gradient(135deg, #FF6B6B, #EE5A52) !important;
         }
 
-        /* Keep the original background colors for each bonus type */
-        .bonus-header:nth-child(2) { background: #cedaf2 !important; color: #1976D2 !important; }
-        .bonus-header:nth-child(3) { background: #98FB98 !important; color: #2E7D32 !important; }
-        .bonus-header:nth-child(4) { background: #FFA500 !important; color: white !important; }
-        .bonus-header:nth-child(5) { background: #e9dfc5 !important; color: #8D6E63 !important; }
-        .bonus-header:nth-child(6) { background: #FFD700 !important; color: #F57F17 !important; }
-        .bonus-header:nth-child(7) { background: #222426 !important; color: white !important; }
+        /* Keep the original background colors for each bonus type - Updated for new team column */
+        .bonus-header:nth-child(3) { background: #cedaf2 !important; color: #1976D2 !important; }
+        .bonus-header:nth-child(4) { background: #98FB98 !important; color: #2E7D32 !important; }
+        .bonus-header:nth-child(5) { background: #FFA500 !important; color: white !important; }
+        .bonus-header:nth-child(6) { background: #e9dfc5 !important; color: #8D6E63 !important; }
+        .bonus-header:nth-child(7) { background: #FFD700 !important; color: #F57F17 !important; }
+        .bonus-header:nth-child(8) { background: #222426 !important; color: white !important; }
 
         @media (max-width: 768px) {
             body {
@@ -313,7 +373,19 @@
             .controls {
                 padding: 20px;
                 grid-template-columns: 1fr;
-                gap: 12px;
+                gap: 15px;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                text-align: center;
+            }
+
+            .filter-select {
+                min-width: auto;
+                width: 100%;
             }
 
             .table-container {
@@ -350,6 +422,12 @@
                 width: 60px;
                 font-size: 11px;
                 padding: 8px 6px;
+            }
+
+            .bonus-table th:nth-child(2),
+            .bonus-table td:nth-child(2) {
+                min-width: 80px;
+                font-size: 11px;
             }
         }
 
@@ -542,6 +620,23 @@
         </div>
 
         <div class="controls">
+            <div class="filter-group">
+                <label for="teamFilter">تصفية حسب الفريق:</label>
+                <select id="teamFilter" class="filter-select">
+                    <option value="">جميع الفرق</option>
+                    <option value="مكيف">مكيف</option>
+                    <option value="مجري">مجري</option>
+                    <option value="اشاش">اشاش</option>
+                    <option value="اسباني">اسباني</option>
+                    <option value="روسي">روسي</option>
+                    <option value="نوم">نوم</option>
+                    <option value="تانجو">تانجو</option>
+                    <option value="بضايع">بضايع</option>
+                    <option value="6 الا ربع">6 الا ربع</option>
+                    <option value="vip">vip</option>
+                </select>
+                <span id="filterCount" class="filter-count"></span>
+            </div>
             <div class="last-update-info">
                 📅 آخر تحديث: <span id="lastUpdate">-</span>
             </div>
@@ -560,6 +655,7 @@
                 <thead>
                     <tr>
                         <th style="width: 200px;">اسم المسافر</th>
+                        <th style="width: 120px; background: linear-gradient(135deg, #607D8B, #78909C) !important;">الفريق</th>
                         <th class="bonus-header">bonus 1</th>
                         <th class="bonus-header">bonus 2</th>
                         <th class="bonus-header">bonus 3</th>
@@ -652,19 +748,26 @@
             }
         }
 
-        // Global variables for Firebase operations
+        // Global variables for Firebase operations and data storage
         window.database = database;
         window.firebaseRef = ref;
         window.firebaseSet = set;
         window.firebaseGet = get;
         window.firebaseChild = child;
         window.firebaseUpdate = update;
+        window.allUsersData = []; // Store all users data for filtering
 
         // Load data when page loads
         document.addEventListener('DOMContentLoaded', async function() {
             const hasAdminAccess = await verifyAdminAccess();
             if (hasAdminAccess) {
                 loadBonusData();
+                
+                // Add filter event listener
+                const teamFilter = document.getElementById('teamFilter');
+                teamFilter.addEventListener('change', function() {
+                    filterBonusTable(this.value);
+                });
             }
         });
 
@@ -685,74 +788,14 @@
                     const usersData = snapshot.val();
                     const users = Object.values(usersData);
                     
-                    tableBody.innerHTML = '';
+                    // Store all users data globally for filtering
+                    window.allUsersData = users;
                     
-                    let totalBonusesGranted = 0;
-                    let totalBonusValue = 0;
-                    let topPerformer = { name: '-', total: 0 };
-
-                    users.forEach((user) => {
-                        const row = document.createElement('tr');
-                        
-                        // Name column
-                        const nameCell = document.createElement('td');
-                        nameCell.className = 'name-cell';
-                        nameCell.textContent = user.name;
-                        row.appendChild(nameCell);
-
-                        let userTotal = 0;
-                        const emailKey = user.email.replace(/\./g, '_').replace(/@/g, '_at_');
-
-                        // Bonus columns (1-6)
-                        for (let i = 1; i <= 6; i++) {
-                            const bonusCell = document.createElement('td');
-                            bonusCell.className = 'bonus-cell';
-                            
-                            const input = document.createElement('input');
-                            input.type = 'number';
-                            input.className = 'bonus-input';
-                            input.min = '0';
-                            input.step = '0.5';
-                            input.placeholder = '0';
-                            input.value = user[`bonus${i}`] || 0;
-                            input.id = `bonus_${emailKey}_${i}`;
-                            
-                            // Add event listener for auto-save
-                            input.addEventListener('input', function() {
-                                autoSave(emailKey, i, this.value);
-                                updateRowTotal(emailKey);
-                                updateStats();
-                            });
-                            
-                            bonusCell.appendChild(input);
-                            row.appendChild(bonusCell);
-                            
-                            userTotal += parseFloat(input.value) || 0;
-                        }
-
-                        // Total column
-                        const totalCell = document.createElement('td');
-                        totalCell.className = 'total-bonus';
-                        totalCell.id = `total_${emailKey}`;
-                        totalCell.textContent = userTotal.toFixed(1);
-                        row.appendChild(totalCell);
-
-                        // Update top performer stats
-                        if (userTotal > topPerformer.total) {
-                            topPerformer = { name: user.name, total: userTotal };
-                        }
-
-                        totalBonusValue += userTotal;
-                        if (userTotal > 0) totalBonusesGranted++;
-
-                        tableBody.appendChild(row);
-                    });
-
-                    // Update statistics
-                    updateStats();
+                    renderBonusTable(users);
                     
                 } else {
-                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #666;">لا توجد بيانات مسافرين</td></tr>';
+                    const tableBody = document.getElementById('bonusTableBody');
+                    tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: #666;">لا توجد بيانات مسافرين</td></tr>';
                 }
                 
                 // Update last update time
@@ -768,6 +811,114 @@
                 `;
             } finally {
                 loadingMessage.style.display = 'none';
+            }
+        }
+
+        // Render bonus table with given users data
+        window.renderBonusTable = function(users) {
+            const tableBody = document.getElementById('bonusTableBody');
+            tableBody.innerHTML = '';
+            
+            let totalBonusesGranted = 0;
+            let totalBonusValue = 0;
+            let topPerformer = { name: '-', total: 0 };
+
+            users.forEach((user) => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-team', user.team || '');
+                
+                // Name column
+                const nameCell = document.createElement('td');
+                nameCell.className = 'name-cell';
+                nameCell.textContent = user.name;
+                row.appendChild(nameCell);
+
+                // Team column
+                const teamCell = document.createElement('td');
+                teamCell.className = 'team-cell';
+                teamCell.textContent = user.team || '-';
+                row.appendChild(teamCell);
+
+                let userTotal = 0;
+                const emailKey = user.email.replace(/\./g, '_').replace(/@/g, '_at_');
+
+                // Bonus columns (1-6)
+                for (let i = 1; i <= 6; i++) {
+                    const bonusCell = document.createElement('td');
+                    bonusCell.className = 'bonus-cell';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'bonus-input';
+                    input.min = '0';
+                    input.step = '0.5';
+                    input.placeholder = '0';
+                    input.value = user[`bonus${i}`] || 0;
+                    input.id = `bonus_${emailKey}_${i}`;
+                    
+                    // Add event listener for auto-save
+                    input.addEventListener('input', function() {
+                        autoSave(emailKey, i, this.value);
+                        updateRowTotal(emailKey);
+                        updateStats();
+                    });
+                    
+                    bonusCell.appendChild(input);
+                    row.appendChild(bonusCell);
+                    
+                    userTotal += parseFloat(input.value) || 0;
+                }
+
+                // Total column
+                const totalCell = document.createElement('td');
+                totalCell.className = 'total-bonus';
+                totalCell.id = `total_${emailKey}`;
+                totalCell.textContent = userTotal.toFixed(1);
+                row.appendChild(totalCell);
+
+                // Update top performer stats
+                if (userTotal > topPerformer.total) {
+                    topPerformer = { name: user.name, total: userTotal };
+                }
+
+                totalBonusValue += userTotal;
+                if (userTotal > 0) totalBonusesGranted++;
+
+                tableBody.appendChild(row);
+            });
+
+            // Update statistics and filter count
+            updateStats();
+            updateFilterCount(users.length);
+        }
+
+        // Filter bonus table by team
+        window.filterBonusTable = function(selectedTeam) {
+            if (!window.allUsersData) return;
+            
+            let filteredUsers = window.allUsersData;
+            
+            if (selectedTeam && selectedTeam !== '') {
+                filteredUsers = window.allUsersData.filter(user => user.team === selectedTeam);
+            }
+            
+            renderBonusTable(filteredUsers);
+        }
+
+        // Update filter count display
+        window.updateFilterCount = function(count) {
+            const filterCount = document.getElementById('filterCount');
+            if (filterCount) {
+                const teamFilter = document.getElementById('teamFilter');
+                const selectedTeam = teamFilter.value;
+                
+                if (selectedTeam && selectedTeam !== '') {
+                    filterCount.textContent = `(${count} مسافر)`;
+                    filterCount.style.display = 'inline';
+                } else {
+                    filterCount.textContent = '';
+                    filterCount.style.display = 'none';
+                }
             }
         }
 
@@ -805,42 +956,42 @@
             }
         }
 
-        // Update statistics
-        window.updateStats = async function() {
-            try {
-                const dbRef = ref(database);
-                const snapshot = await get(child(dbRef, 'users'));
-                
-                if (snapshot.exists()) {
-                    const usersData = snapshot.val();
-                    const users = Object.values(usersData);
-                    
-                    let totalBonusesGranted = 0;
-                    let totalBonusValue = 0;
-                    let topPerformer = { name: '-', total: 0 };
-
-                    users.forEach(user => {
-                        let userTotal = 0;
-                        for (let i = 1; i <= 6; i++) {
-                            userTotal += parseFloat(user[`bonus${i}`]) || 0;
-                        }
-                        
-                        if (userTotal > 0) totalBonusesGranted++;
-                        totalBonusValue += userTotal;
-                        
-                        if (userTotal > topPerformer.total) {
-                            topPerformer = { name: user.name, total: userTotal };
-                        }
-                    });
-
-                    document.getElementById('totalUsers').textContent = users.length;
-                    document.getElementById('totalBonuses').textContent = totalBonusValue.toFixed(1);
-                    document.getElementById('averageBonus').textContent = users.length > 0 ? (totalBonusValue / users.length).toFixed(1) : '0';
-                    document.getElementById('topPerformer').textContent = topPerformer.name;
-                }
-            } catch (error) {
-                console.error('Error updating stats:', error);
+        // Update statistics based on currently visible table rows
+        window.updateStats = function() {
+            const tableBody = document.getElementById('bonusTableBody');
+            const visibleRows = Array.from(tableBody.querySelectorAll('tr'));
+            
+            if (visibleRows.length === 0) {
+                document.getElementById('totalUsers').textContent = '0';
+                document.getElementById('totalBonuses').textContent = '0';
+                document.getElementById('averageBonus').textContent = '0';
+                document.getElementById('topPerformer').textContent = '-';
+                return;
             }
+
+            let totalBonusValue = 0;
+            let topPerformer = { name: '-', total: 0 };
+
+            visibleRows.forEach(row => {
+                const nameCell = row.querySelector('.name-cell');
+                const totalCell = row.querySelector('.total-bonus');
+                
+                if (nameCell && totalCell) {
+                    const userName = nameCell.textContent;
+                    const userTotal = parseFloat(totalCell.textContent) || 0;
+                    
+                    totalBonusValue += userTotal;
+                    
+                    if (userTotal > topPerformer.total) {
+                        topPerformer = { name: userName, total: userTotal };
+                    }
+                }
+            });
+
+            document.getElementById('totalUsers').textContent = visibleRows.length;
+            document.getElementById('totalBonuses').textContent = totalBonusValue.toFixed(1);
+            document.getElementById('averageBonus').textContent = visibleRows.length > 0 ? (totalBonusValue / visibleRows.length).toFixed(1) : '0';
+            document.getElementById('topPerformer').textContent = topPerformer.name;
         }
 
         // Save all bonus data to Firebase
