@@ -450,6 +450,11 @@
             color: #ff6b6b;
         }
 
+        .level-info .tickets.sold-out {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
         .booking-btn {
             width: 100%;
             padding: 10px;
@@ -473,6 +478,21 @@
             background: #ccc;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .booking-btn.sold-out {
+            background: #dc3545;
+            cursor: not-allowed;
+        }
+
+        .booking-btn.cancel {
+            background: linear-gradient(45deg, #ff6b6b, #ff8787);
+            color: white;
+        }
+
+        .booking-btn.cancel:hover {
+            background: linear-gradient(45deg, #ff5252, #ff6b6b);
+            transform: translateY(-2px);
         }
 
         .level-info .close-btn {
@@ -708,8 +728,8 @@ const firebaseConfig = {
                     <h3>دوس ستارت</h3>
                     <p class="description">لعب و فقرات طبية و تمرررر</p>
                     <p class="date">Date: March 22, 2025</p>
-                    <p class="tickets">Available Tickets: 80</p>
-                    <button class="booking-btn" onclick="bookLevel(1, event)">Book Now</button>
+                    <p class="tickets" id="tickets-1">Available Tickets: <span id="ticket-count-1">80</span></p>
+                    <button class="booking-btn" id="book-btn-1" onclick="bookLevel(1, event)">احجز الان</button>
                 </div>
             </div>
             <div class="station" style="top: 20%;" data-station="2" onclick="toggleLevelInfo(2)">
@@ -719,8 +739,8 @@ const firebaseConfig = {
                     <h3>هوبا  تيتو مامبو</h3>
                     <p class="description">كيكة و مانجا و صوص الشوكلاتة البلجيكي</p>
                     <p class="date">Date: March 29, 2025</p>
-                    <p class="tickets">Available Tickets: 80</p>
-                    <button class="booking-btn" onclick="bookLevel(2, event)">Book Now</button>
+                    <p class="tickets" id="tickets-2">Available Tickets: <span id="ticket-count-2">80</span></p>
+                    <button class="booking-btn" id="book-btn-2" onclick="bookLevel(2, event)">احجز الان</button>
                 </div>
             </div>
             <div class="station" style="top: 35%;" data-station="3" onclick="toggleLevelInfo(3)">
@@ -730,8 +750,8 @@ const firebaseConfig = {
                     <h3>Object-Oriented Programming</h3>
                     <p class="description">Understand OOP principles, inheritance, polymorphism, and encapsulation</p>
                     <p class="date">Date: March 5, 2024</p>
-                    <p class="tickets limited">Available Tickets: 5</p>
-                    <button class="booking-btn" onclick="bookLevel(3, event)">Book Now</button>
+                    <p class="tickets limited" id="tickets-3">Available Tickets: <span id="ticket-count-3">5</span></p>
+                    <button class="booking-btn" id="book-btn-3" onclick="bookLevel(3, event)">احجز الان</button>
                 </div>
             </div>
             <div class="station" style="top: 50%;" data-station="4" onclick="toggleLevelInfo(4)">
@@ -741,8 +761,8 @@ const firebaseConfig = {
                     <h3>Data Structures & Algorithms</h3>
                     <p class="description">Explore arrays, linked lists, trees, sorting, and searching algorithms</p>
                     <p class="date">Date: February 28, 2024</p>
-                    <p class="tickets">Available Tickets: 32</p>
-                    <button class="booking-btn" onclick="bookLevel(4, event)">Book Now</button>
+                    <p class="tickets" id="tickets-4">Available Tickets: <span id="ticket-count-4">32</span></p>
+                    <button class="booking-btn" id="book-btn-4" onclick="bookLevel(4, event)">احجز الان</button>
                 </div>
             </div>
             <div class="station" style="top: 70%;" data-station="5" onclick="toggleLevelInfo(5)">
@@ -752,8 +772,8 @@ const firebaseConfig = {
                     <h3>Programming Fundamentals</h3>
                     <p class="description">Learn basic programming concepts, variables, loops, and functions</p>
                     <p class="date">Date: February 20, 2024</p>
-                    <p class="tickets">Available Tickets: 45</p>
-                    <button class="booking-btn" onclick="bookLevel(5, event)">Book Now</button>
+                    <p class="tickets" id="tickets-5">Available Tickets: <span id="ticket-count-5">45</span></p>
+                    <button class="booking-btn" id="book-btn-5" onclick="bookLevel(5, event)">احجز الان</button>
                 </div>
             </div>
             <div class="station" style="top: 90%;" data-station="6" onclick="toggleLevelInfo(6)">
@@ -763,8 +783,8 @@ const firebaseConfig = {
                     <h3>Introduction to Computing</h3>
                     <p class="description">Basic computer concepts, introduction to programming logic</p>
                     <p class="date">Date: February 15, 2024</p>
-                    <p class="tickets limited">Available Tickets: 8</p>
-                    <button class="booking-btn" onclick="bookLevel(6, event)">Book Now</button>
+                    <p class="tickets limited" id="tickets-6">Available Tickets: <span id="ticket-count-6">8</span></p>
+                    <button class="booking-btn" id="book-btn-6" onclick="bookLevel(6, event)">احجز الان</button>
                 </div>
             </div>
         </div>
@@ -831,6 +851,8 @@ const firebaseConfig = {
         async function initializePage() {
             try {
                 await updateMaxAllowedStation();
+                await initializeTicketCounts(); // Initialize ticket counts
+                await updateBookingButtonStates(); // Update booking button states
                 updateTrainPosition();
                 
                 // Set initial train position to station 1
@@ -938,6 +960,235 @@ const firebaseConfig = {
                 updateStationVisuals();
             } finally {
                 hideLoading();
+            }
+        }
+
+        // Initialize ticket counts from Firebase or set defaults
+        async function initializeTicketCounts() {
+            // Check if Firebase is available
+            if (!window.firebaseReady || !window.database) {
+                console.log('Firebase not ready for ticket initialization');
+                return;
+            }
+
+            try {
+                const dbRef = window.firebaseRef(window.database);
+                const ticketsSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, 'tickets'));
+                
+                // Default ticket counts for each level
+                const defaultTickets = {
+                    1: 80,
+                    2: 80,
+                    3: 80,
+                    4: 80,
+                    5: 80,
+                    6: 80
+                };
+                
+                let ticketsData = {};
+                
+                if (ticketsSnapshot.exists()) {
+                    ticketsData = ticketsSnapshot.val();
+                } else {
+                    // Initialize with default values if not exists
+                    ticketsData = defaultTickets;
+                    await window.firebaseSet(window.firebaseRef(window.database, 'tickets'), ticketsData);
+                }
+                
+                // Update UI with current ticket counts
+                for (let level = 1; level <= 6; level++) {
+                    updateTicketDisplay(level, ticketsData[level] || 0);
+                }
+                
+            } catch (error) {
+                console.error('Error initializing ticket counts:', error);
+                // Fallback to default display if Firebase fails
+                const defaultTickets = {1: 80, 2: 80, 3: 80, 4: 80, 5: 80, 6: 80};
+                for (let level = 1; level <= 6; level++) {
+                    updateTicketDisplay(level, defaultTickets[level]);
+                }
+            }
+        }
+
+        // Update ticket display in UI
+        function updateTicketDisplay(levelId, ticketCount) {
+            const ticketCountSpan = document.getElementById(`ticket-count-${levelId}`);
+            const ticketsElement = document.getElementById(`tickets-${levelId}`);
+            const bookingBtn = document.getElementById(`book-btn-${levelId}`);
+            
+            if (ticketCountSpan) {
+                ticketCountSpan.textContent = ticketCount;
+            }
+            
+            if (ticketsElement && bookingBtn) {
+                if (ticketCount <= 0) {
+                    // Sold out
+                    ticketsElement.classList.add('sold-out');
+                    ticketsElement.classList.remove('limited');
+                    bookingBtn.disabled = true;
+                    bookingBtn.textContent = 'Sold Out';
+                    bookingBtn.classList.add('sold-out');
+                } else if (ticketCount <= 10) {
+                    // Limited tickets
+                    ticketsElement.classList.add('limited');
+                    ticketsElement.classList.remove('sold-out');
+                    bookingBtn.disabled = false;
+                    bookingBtn.textContent = 'احجز الان';
+                    bookingBtn.classList.remove('sold-out');
+                } else {
+                    // Normal availability
+                    ticketsElement.classList.remove('limited', 'sold-out');
+                    bookingBtn.disabled = false;
+                    bookingBtn.textContent = 'احجز الان';
+                    bookingBtn.classList.remove('sold-out');
+                }
+            }
+        }
+
+        // Decrement ticket count when booking is made
+        async function decrementTicket(levelId) {
+            // Check if Firebase is available
+            if (!window.firebaseReady || !window.database) {
+                console.log('Firebase not ready for ticket decrement');
+                return false;
+            }
+
+            try {
+                const dbRef = window.firebaseRef(window.database);
+                const ticketRef = window.firebaseChild(dbRef, `tickets/${levelId}`);
+                const ticketSnapshot = await window.firebaseGet(ticketRef);
+                
+                if (ticketSnapshot.exists()) {
+                    const currentCount = ticketSnapshot.val();
+                    
+                    if (currentCount > 0) {
+                        // Decrement the ticket count
+                        const newCount = currentCount - 1;
+                        await window.firebaseSet(window.firebaseRef(window.database, `tickets/${levelId}`), newCount);
+                        
+                        // Update UI
+                        updateTicketDisplay(levelId, newCount);
+                        
+                        // Also update other users by refreshing ticket counts periodically
+                        setTimeout(() => refreshTicketCounts(), 1000);
+                        
+                        return true;
+                    } else {
+                        alert('عذراً، لا توجد تذاكر متاحة لهذه المرحلة');
+                        return false;
+                    }
+                } else {
+                    console.error('Ticket data not found for level', levelId);
+                    return false;
+                }
+                
+            } catch (error) {
+                console.error('Error decrementing ticket:', error);
+                return false;
+            }
+        }
+
+        // Increment ticket count when booking is cancelled
+        async function incrementTicket(levelId) {
+            // Check if Firebase is available
+            if (!window.firebaseReady || !window.database) {
+                console.log('Firebase not ready for ticket increment');
+                return false;
+            }
+
+            try {
+                const dbRef = window.firebaseRef(window.database);
+                const ticketRef = window.firebaseChild(dbRef, `tickets/${levelId}`);
+                const ticketSnapshot = await window.firebaseGet(ticketRef);
+                
+                if (ticketSnapshot.exists()) {
+                    const currentCount = ticketSnapshot.val();
+                    
+                    // Increment the ticket count
+                    const newCount = currentCount + 1;
+                    await window.firebaseSet(window.firebaseRef(window.database, `tickets/${levelId}`), newCount);
+                    
+                    // Update UI
+                    updateTicketDisplay(levelId, newCount);
+                    
+                    // Also update other users by refreshing ticket counts periodically
+                    setTimeout(() => refreshTicketCounts(), 1000);
+                    
+                    return true;
+                } else {
+                    console.error('Ticket data not found for level', levelId);
+                    return false;
+                }
+                
+            } catch (error) {
+                console.error('Error incrementing ticket:', error);
+                return false;
+            }
+        }
+
+        // Refresh ticket counts from Firebase (for real-time updates)
+        async function refreshTicketCounts() {
+            if (!window.firebaseReady || !window.database) return;
+
+            try {
+                const dbRef = window.firebaseRef(window.database);
+                const ticketsSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, 'tickets'));
+                
+                if (ticketsSnapshot.exists()) {
+                    const ticketsData = ticketsSnapshot.val();
+                    
+                    // Update UI for all levels
+                    for (let level = 1; level <= 6; level++) {
+                        if (ticketsData[level] !== undefined) {
+                            updateTicketDisplay(level, ticketsData[level]);
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error refreshing ticket counts:', error);
+            }
+        }
+
+        // Update booking button states based on user's current bookings
+        async function updateBookingButtonStates() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser || !window.firebaseReady || !window.database) {
+                return;
+            }
+
+            try {
+                const emailKey = currentUser.replace(/\./g, '_').replace(/@/g, '_at_');
+                const dbRef = window.firebaseRef(window.database);
+                const userSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, `users/${emailKey}`));
+                
+                if (userSnapshot.exists()) {
+                    const user = userSnapshot.val();
+                    const userBookings = user.bookings || [];
+                    
+                    // Update button states for all levels
+                    for (let level = 1; level <= 6; level++) {
+                        const bookingBtn = document.getElementById(`book-btn-${level}`);
+                        const existingBooking = userBookings.find(b => b.levelId == level);
+                        
+                        if (bookingBtn && !bookingBtn.classList.contains('sold-out')) {
+                            if (existingBooking) {
+                                // User has booked this level - show cancel button
+                                bookingBtn.textContent = 'إلغاء الحجز';
+                                bookingBtn.classList.add('cancel');
+                                bookingBtn.classList.remove('sold-out');
+                                bookingBtn.disabled = false;
+                            } else {
+                                // User hasn't booked - show book button
+                                bookingBtn.textContent = 'احجز الان';
+                                bookingBtn.classList.remove('cancel');
+                            }
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error updating booking button states:', error);
             }
         }
 
@@ -1073,6 +1324,13 @@ const firebaseConfig = {
                 alert('هذه المرحلة مغلقة حالياً. لا يمكن الوصول إليها.');
                 return;
             }
+
+            // Check if tickets are sold out
+            const bookingBtn = document.getElementById(`book-btn-${levelNumber}`);
+            if (bookingBtn && bookingBtn.classList.contains('sold-out')) {
+                // Still allow viewing info, but show sold out message if they try to book
+                console.log(`Level ${levelNumber} is sold out but info can still be viewed`);
+            }
             
             // Close all other level info panels first
             document.querySelectorAll('.level-info').forEach(info => {
@@ -1113,9 +1371,10 @@ const firebaseConfig = {
             }
             
             try {
-                // Get user data from Firebase to check team access
-                const emailKey = currentUser.replace(/\./g, '_').replace(/@/g, '_at_');
                 const dbRef = window.firebaseRef(window.database);
+                const emailKey = currentUser.replace(/\./g, '_').replace(/@/g, '_at_');
+                
+                // Get user data from Firebase
                 const userSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, `users/${emailKey}`));
                 
                 if (!userSnapshot.exists()) {
@@ -1127,43 +1386,94 @@ const firebaseConfig = {
                 
                 // Check if level is locked for this user's team
                 if (user && user.team && !(await canAccessLevelFromFirebase(user.team, levelNumber))) {
-                    alert('هذه المرحلة مغلقة حالياً لفريقك. لا يمكن حجزها الآن.');
+                    alert('هذه المرحلة مغلقة حالياً لفريقك. لا يمكن الوصول إليها.');
                     return;
                 }
                 
                 // Get level information
                 const levelNames = {
-                    1: "Introduction to Computing",
-                    2: "Programming Fundamentals", 
-                    3: "Data Structures & Algorithms",
-                    4: "Object-Oriented Programming",
-                    5: "Web Development",
-                    6: "Advanced Programming"
+                    1: "دوس ستارت",
+                    2: "هوبا تيتو مامبو", 
+                    3: "Object-Oriented Programming",
+                    4: "Data Structures & Algorithms",
+                    5: "Programming Fundamentals",
+                    6: "Introduction to Computing"
                 };
                 
                 const levelName = levelNames[levelNumber];
                 
-                // Check if already booked
-                if (user && user.bookings) {
-                    const existingBooking = user.bookings.find(b => b.levelId == levelNumber);
-                    if (existingBooking) {
-                        alert(`لقد قمت بحجز "${levelName}" مسبقاً في ${new Date(existingBooking.bookingDate).toLocaleDateString('ar-EG')}`);
+                // Check if user has already booked this level
+                const userBookings = user.bookings || [];
+                const existingBooking = userBookings.find(b => b.levelId == levelNumber);
+                
+                if (existingBooking) {
+                    // User wants to cancel booking
+                    if (confirm(`إلغاء حجز "${levelName}" (المرحلة ${levelNumber})؟\n\nسيتم إلغاء الحجز وزيادة عدد التذاكر المتاحة.`)) {
+                        // First increment the ticket count
+                        const ticketIncremented = await incrementTicket(levelNumber);
+                        
+                        if (ticketIncremented) {
+                            // Then remove booking from user's record
+                            await removeBookingFromUserFirebase(currentUser, levelNumber);
+                            
+                            // Update button state
+                            const bookingBtn = document.getElementById(`book-btn-${levelNumber}`);
+                            if (bookingBtn) {
+                                bookingBtn.textContent = 'احجز الان';
+                                bookingBtn.classList.remove('cancel');
+                            }
+                            
+                            // Show success message
+                            alert(`تم إلغاء الحجز للمرحلة ${levelNumber}: ${levelName}!\n\nتم إضافة التذكرة إلى التذاكر المتاحة.`);
+                        } else {
+                            alert('عذراً، حدث خطأ في معالجة إلغاء الحجز. يرجى المحاولة مرة أخرى.');
+                        }
+                    }
+                } else {
+                    // User wants to book
+                    // Check if tickets are available before proceeding
+                    const ticketSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, `tickets/${levelNumber}`));
+                    
+                    if (ticketSnapshot.exists()) {
+                        const ticketCount = ticketSnapshot.val();
+                        if (ticketCount <= 0) {
+                            alert('عذراً، نفدت التذاكر المتاحة لهذه المرحلة');
+                            return;
+                        }
+                    } else {
+                        alert('خطأ في البيانات، يرجى المحاولة لاحقاً');
                         return;
+                    }
+                    
+                    // Show booking confirmation
+                    const currentTicketCount = ticketSnapshot.val();
+                    if (confirm(`حجز "${levelName}" (المرحلة ${levelNumber})؟\n\nالتذاكر المتاحة: ${currentTicketCount}\n\nسيتم تسجيل الحجز تلقائياً في النظام وتقليل عدد التذاكر المتاحة.`)) {
+                        // First decrement the ticket count
+                        const ticketDecremented = await decrementTicket(levelNumber);
+                        
+                        if (ticketDecremented) {
+                            // Then add booking to user's record
+                            await addBookingToUserFirebase(currentUser, levelNumber, levelName);
+                            
+                            // Update button state
+                            const bookingBtn = document.getElementById(`book-btn-${levelNumber}`);
+                            if (bookingBtn) {
+                                bookingBtn.textContent = 'إلغاء الحجز';
+                                bookingBtn.classList.add('cancel');
+                            }
+                            
+                            // Show success message
+                            const remainingTickets = currentTicketCount - 1;
+                            alert(`تم تأكيد الحجز للمرحلة ${levelNumber}: ${levelName}!\n\nالتذاكر المتبقية: ${remainingTickets}\n\nيمكنك إلغاء الحجز في أي وقت أو مراجعة حجوزاتك في الملف الشخصي.`);
+                        } else {
+                            alert('عذراً، حدث خطأ في معالجة الحجز. يرجى المحاولة مرة أخرى.');
+                        }
                     }
                 }
                 
-                // Show booking confirmation
-                if (confirm(`حجز "${levelName}" (المرحلة ${levelNumber})؟\n\nسيتم تسجيل الحجز تلقائياً في النظام.`)) {
-                    // Add booking to user's record in Firebase
-                    await addBookingToUserFirebase(currentUser, levelNumber, levelName);
-                    
-                    // Show success message
-                    alert(`تم تأكيد الحجز للمرحلة ${levelNumber}: ${levelName}!\n\nيمكنك مراجعة حجوزاتك في الملف الشخصي.`);
-                }
-                
             } catch (error) {
-                console.error('Error booking level:', error);
-                alert('حدث خطأ أثناء الحجز. يرجى المحاولة مرة أخرى.');
+                console.error('Error booking/canceling level:', error);
+                alert('حدث خطأ أثناء معالجة طلبك. يرجى المحاولة مرة أخرى.');
             }
         }
 
@@ -1204,6 +1514,33 @@ const firebaseConfig = {
                 }
             } catch (error) {
                 console.error('Error adding booking to Firebase:', error);
+                throw error;
+            }
+        }
+
+        // Remove booking from user's record in Firebase
+        async function removeBookingFromUserFirebase(userEmail, levelId) {
+            try {
+                const emailKey = userEmail.replace(/\./g, '_').replace(/@/g, '_at_');
+                const userRef = window.firebaseRef(window.database, `users/${emailKey}`);
+                
+                // Get current user data
+                const snapshot = await window.firebaseGet(userRef);
+                
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    const bookings = userData.bookings || [];
+                    
+                    // Filter out the booking for this level
+                    const updatedBookings = bookings.filter(b => b.levelId != levelId);
+                    
+                    // Update bookings in Firebase
+                    await window.firebaseUpdate(window.firebaseRef(window.database), {
+                        [`users/${emailKey}/bookings`]: updatedBookings
+                    });
+                }
+            } catch (error) {
+                console.error('Error removing booking from Firebase:', error);
                 throw error;
             }
         }
@@ -1305,6 +1642,12 @@ const firebaseConfig = {
             updateTrainPosition();
         }, 5000); // Increased interval for Firebase calls
 
+        // Refresh ticket counts periodically for real-time updates
+        setInterval(async () => {
+            await refreshTicketCounts();
+            await updateBookingButtonStates(); // Also update booking button states
+        }, 10000); // Refresh every 10 seconds
+
         // Function to check if user's team can access a level (legacy for backward compatibility)
         function canAccessLevel(teamSettings, levelId) {
             if (!teamSettings) {
@@ -1369,6 +1712,70 @@ const firebaseConfig = {
             if (confirmLogout) {
                 localStorage.removeItem('currentUser');
                 window.location.href = 'index.html';
+            }
+        }
+
+        // Admin function to reset ticket counts (call from console: resetTickets())
+        window.resetTickets = async function() {
+            if (!window.firebaseReady || !window.database) {
+                console.log('Firebase not ready');
+                return;
+            }
+
+            const defaultTickets = {
+                1: 80,
+                2: 80,
+                3: 80,
+                4: 80,
+                5: 80,
+                6: 80
+            };
+
+            try {
+                await window.firebaseSet(window.firebaseRef(window.database, 'tickets'), defaultTickets);
+                await refreshTicketCounts();
+                console.log('Ticket counts reset to default values');
+            } catch (error) {
+                console.error('Error resetting tickets:', error);
+            }
+        }
+
+        // Admin function to set specific ticket count (call from console: setTicketCount(levelId, count))
+        window.setTicketCount = async function(levelId, count) {
+            if (!window.firebaseReady || !window.database) {
+                console.log('Firebase not ready');
+                return;
+            }
+
+            try {
+                await window.firebaseSet(window.firebaseRef(window.database, `tickets/${levelId}`), count);
+                updateTicketDisplay(levelId, count);
+                console.log(`Set level ${levelId} tickets to ${count}`);
+            } catch (error) {
+                console.error('Error setting ticket count:', error);
+            }
+        }
+
+        // Function to get current ticket counts (call from console: getTicketCounts())
+        window.getTicketCounts = async function() {
+            if (!window.firebaseReady || !window.database) {
+                console.log('Firebase not ready');
+                return;
+            }
+
+            try {
+                const dbRef = window.firebaseRef(window.database);
+                const ticketsSnapshot = await window.firebaseGet(window.firebaseChild(dbRef, 'tickets'));
+                
+                if (ticketsSnapshot.exists()) {
+                    const tickets = ticketsSnapshot.val();
+                    console.log('Current ticket counts:', tickets);
+                    return tickets;
+                } else {
+                    console.log('No ticket data found');
+                }
+            } catch (error) {
+                console.error('Error getting ticket counts:', error);
             }
         }
     </script>
