@@ -3,51 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-    <title>إنشاء حساب</title>
+    <title>إنشاء حساب - رحلة القطار التعليمية</title>
     <link rel="stylesheet" href="signup.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="background-pattern"></div>
     <div class="container">
-        <h2>إنشاء حساب جديد</h2>
-        <form id="signupForm">
-            <label for="name">الاسم الثلاثي:</label>
-            <input type="text" id="name" name="name" required>
-            <label for="email">البريد الإلكتروني:</label>
-            <input type="email" id="email" name="email" required>
-            <label for="password">كلمة المرور:</label>
-            <input type="password" id="password" name="password" required>
-            <label for="phone">رقم الهاتف:</label>
-            <input type="tel" id="phone" name="phone" required>
-            <label for="role">الصلاحية:</label>
-            <select id="role" name="role" required>
-                <option value="user" selected>مستخدم</option>
-                <option value="admin">مسؤول (أدمن)</option>
-            </select>
-            <div id="adminTokenWrapper" style="display:none;">
-                <label for="adminToken">رمز التحقق للأدمن:</label>
-                <input type="password" id="adminToken" name="adminToken" placeholder="أدخل الرمز السري" autocomplete="off">
+        <div class="header-section">
+            <div class="logo-container">
+                <div class="train-icon">🚂</div>
+                <h1 class="logo-text">Journey 03</h1>
             </div>
-            <label for="team">الفريق:</label>
-            <select id="team" name="team" required>
-                <option value="">اختر الفريق</option>
-                <option value="مكيف">مكيف</option>
-                <option value="مجري">مجري</option>
-                <option value="اشاش">اشاش</option>
-                <option value="اسباني">اسباني</option>
-                <option value="روسي">روسي</option>
-                <option value="نوم">نوم</option>
-                <option value="تانجو">تانجو</option>
-                <option value="بضايع">بضايع</option>
-                <option value="بضايع">6 الا ربع</option>
-                <option value="vip">vip</option>
-            </select>
-            <button type="submit">تسجيل</button>
-        </form>
-        <p>لديك حساب بالفعل؟ <a href="index.html">تسجيل الدخول</a></p>
-    </div>
-      <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script type="module" src="signup.js"></script>
+        </div>
+        
+        <div class="form-container">
+            <div class="form-header">
+                <h2>إنشاء حساب جديد</h2>
+            </div>
+            
+            <form id="signupForm" class="signup-form">
+                <div class="input-group">
+                    <label for="name">الاسم الثلاثي</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="name" name="name" required placeholder="أدخل اسمك الثلاثي">
+                        <span class="input-icon">👤</span>
+                    </div>
+                </div>
 
+                <div class="input-group">
+                    <label for="email">البريد الإلكتروني</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" name="email" required placeholder="example@email.com">
+                        <span class="input-icon">📧</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">كلمة المرور</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" required placeholder="أدخل كلمة مرور قوية">
+                        <span class="input-icon">🔒</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="phone">رقم الهاتف</label>
+                    <div class="input-wrapper">
+                        <input type="tel" id="phone" name="phone" style="direction: rtl;" required placeholder="+20 1xx xxx xxxx">
+                        <span class="input-icon">📱</span>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="role">نوع الحساب</label>
+                        <div class="select-wrapper">
+                            <select id="role" name="role" required>
+                                <option value="user" selected>مسافر (مستخدم)</option>
+                                <option value="admin">مشرف الرحلة (أدمن)</option>
+                            </select>
+                            <span class="select-arrow">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="team">قطار رهطك</label>
+                        <div class="select-wrapper">
+                            <select id="team" name="team" required>
+                                <option value="">اختر رهطك</option>
+                                <option value="مكيف">مكيف</option>
+                                <option value="مجري">مجري</option>
+                                <option value="اشاش">اشاش</option>
+                                <option value="اسباني">اسباني</option>
+                                <option value="روسي">روسي</option>
+                                <option value="نوم">نوم</option>
+                                <option value="تانجو">تانجو</option>
+                                <option value="بضايع">بضايع</option>
+                                <option value="6 الا ربع">6 الا ربع</option>
+                                <option value="vip">vip</option>
+                            </select>
+                            <span class="select-arrow">▼</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="adminTokenWrapper" class="admin-token-wrapper">
+                    <div class="input-group">
+                        <label for="adminToken">رمز المشرف السري</label>
+                        <div class="input-wrapper special">
+                            <input type="password" id="adminToken" name="adminToken" placeholder="أدخل الرمز السري للمشرفين" autocomplete="off">
+                            <span class="input-icon">🔑</span>
+                        </div>
+                        <small class="help-text">هذا الرمز مطلوب للحسابات الإدارية فقط</small>
+                    </div>
+                </div>
+
+                <button type="submit" class="signup-btn">
+                    <span class="btn-text">ابدأ الرحلة</span>
+                    <span class="btn-icon">🚀</span>
+                </button>
+            </form>
+
+            <div class="form-footer">
+                <div class="divider">
+                    <span>أو</span>
+                </div>
+                <p class="login-link">
+                    لديك حساب بالفعل؟ 
+                    <a href="index.html" class="link">تسجيل الدخول </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script type="module" src="signup.js"></script>
 </body>
 </html>

@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (snapshot.exists()) {
                 // Convert to string to handle both number and string tokens from Firebase
                 ADMIN_TOKEN = String(snapshot.val());
-                console.log('Admin token loaded from Firebase:', ADMIN_TOKEN);
             } else {
                 // No token exists in Firebase - admin registration will be disabled
                 ADMIN_TOKEN = null;
@@ -58,13 +57,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show/hide token field based on role
     roleSelect.addEventListener('change', () => {
         const isAdmin = roleSelect.value === 'admin';
+        const adminTokenWrapper = document.getElementById('adminTokenWrapper');
+        
         if (isAdmin) {
-            adminTokenWrapper.style.display = 'block';
-            requestAnimationFrame(() => adminTokenWrapper.classList.add('show'));
+            adminTokenWrapper.classList.add('show');
             adminTokenInput.required = true;
         } else {
             adminTokenWrapper.classList.remove('show');
-            setTimeout(()=>{ adminTokenWrapper.style.display = 'none'; }, 350);
             adminTokenInput.required = false;
             adminTokenInput.value = '';
         }
@@ -72,6 +71,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     signupForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+        
+        // Show loading state
+        const submitBtn = document.querySelector('.signup-btn');
+        const btnText = document.querySelector('.btn-text');
+        const btnIcon = document.querySelector('.btn-icon');
+        
+        const originalText = btnText.textContent;
+        const originalIcon = btnIcon.textContent;
+        
+        submitBtn.disabled = true;
+        btnText.textContent = 'جاري إنشاء الحساب...';
+        btnIcon.textContent = '⏳';
         
         const name = document.getElementById('name').value;
         const email = document.getElementById('email').value;
@@ -81,34 +92,34 @@ document.addEventListener('DOMContentLoaded', function() {
         const role = roleSelect.value;
         const providedToken = adminTokenInput.value.trim();
 
-        // Validate admin token if admin role is selected
-        if (role === 'admin') {
-            if (!providedToken) {
-                alert('الرجاء إدخال رمز الأدمن');
-                return;
-            }
-            
-            // Check if admin token exists in Firebase
-            if (ADMIN_TOKEN === null) {
-                alert('لا يوجد رمز أدمن مُعرَّف في النظام. لا يمكن إنشاء حسابات أدمن حالياً.');
-                console.log('Admin registration blocked - no token configured');
-                return;
-            }
-            
-            // Convert both tokens to strings for comparison to handle number tokens from Firebase
-            const providedTokenStr = String(providedToken);
-            const adminTokenStr = String(ADMIN_TOKEN);
-            
-            console.log('Comparing tokens:', providedTokenStr, 'vs', adminTokenStr);
-            
-            if (providedTokenStr !== adminTokenStr) {
-                alert('رمز الأدمن غير صحيح');
-                console.log('Token mismatch - provided:', providedTokenStr, 'expected:', adminTokenStr);
-                return;
-            }
-        }
-        
         try {
+            // Validate admin token if admin role is selected
+            if (role === 'admin') {
+                if (!providedToken) {
+                    alert('الرجاء إدخال رمز الأدمن');
+                    return;
+                }
+                
+                // Check if admin token exists in Firebase
+                if (ADMIN_TOKEN === null) {
+                    alert('لا يوجد رمز أدمن مُعرَّف في النظام. لا يمكن إنشاء حسابات أدمن حالياً.');
+                    console.log('Admin registration blocked - no token configured');
+                    return;
+                }
+                
+                // Convert both tokens to strings for comparison to handle number tokens from Firebase
+                const providedTokenStr = String(providedToken);
+                const adminTokenStr = String(ADMIN_TOKEN);
+                
+                console.log('Comparing tokens:', providedTokenStr, 'vs', adminTokenStr);
+                
+                if (providedTokenStr !== adminTokenStr) {
+                    alert('رمز الأدمن غير صحيح');
+                    console.log('Token mismatch - provided:', providedTokenStr, 'expected:', adminTokenStr);
+                    return;
+                }
+            }
+            
             // Create a safe key from email (replace . with _ since Firebase keys can't contain .)
             const emailKey = email.replace(/\./g, '_').replace(/@/g, '_at_');
             
@@ -146,19 +157,32 @@ document.addEventListener('DOMContentLoaded', function() {
             // Set current user session (you might want to use a more secure session management)
             localStorage.setItem('currentUser', email);
             
-            // Show success message
-            alert('تم إنشاء الحساب بنجاح!');
+            // Show success state
+            btnText.textContent = 'تم بنجاح!';
+            btnIcon.textContent = '✅';
             
-            // Redirect based on role
-            if (role === 'admin') {
-                window.location.href = 'adminDash.html';
-            } else {
-                window.location.href = 'map4.html';
-            }
+            // Show success message
+            setTimeout(() => {
+                alert('مرحباً بك في رحلة القطار التعليمية! تم إنشاء حسابك بنجاح.');
+                
+                // Redirect based on role
+                if (role === 'admin') {
+                    window.location.href = 'adminDash.html';
+                } else {
+                    window.location.href = 'map4.html';
+                }
+            }, 1000);
             
         } catch (error) {
             console.error('Error creating account:', error);
             alert('حدث خطأ أثناء إنشاء الحساب. الرجاء المحاولة مرة أخرى.');
+        } finally {
+            // Reset button state if there was an error
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                btnText.textContent = originalText;
+                btnIcon.textContent = originalIcon;
+            }, 2000);
         }
     });
 });

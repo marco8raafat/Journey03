@@ -3,21 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-    <title>تسجيل الدخول</title>
+    <title>تسجيل الدخول - رحلة القطار التعليمية</title>
     <link rel="stylesheet" href="index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="background-pattern"></div>
     <div class="container">
-        <h2>تسجيل الدخول</h2>
-        <form id="loginForm">
-            <label for="email">البريد الإلكتروني:</label>
-            <input type="email" id="email" name="email" required>
-            <label for="password">كلمة المرور:</label>
-            <input type="password" id="password" name="password" required>
-            <button type="submit">دخول</button>
-        </form>
-        <p>ليس لديك حساب؟ <a href="signup.html">سجل الآن</a></p>
+        <div class="header-section">
+            <div class="logo-container">
+                <div class="train-icon">🚂</div>
+                <h1 class="logo-text">Journey 03</h1>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <div class="form-header">
+                <h2>مرحباً بعودتك!</h2>
+            </div>
+            
+            <form id="loginForm" class="login-form">
+                <div class="input-group">
+                    <label for="email">البريد الإلكتروني</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" name="email" required placeholder="أدخل بريدك الإلكتروني">
+                        <span class="input-icon">📧</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">كلمة المرور</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" required placeholder="أدخل كلمة المرور">
+                        <span class="input-icon">🔒</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    <span class="btn-text">تسجيل الدخول</span>
+                    <span class="btn-icon">🚀</span>
+                </button>
+            </form>
+
+            <div class="form-footer">
+                <div class="divider">
+                    <span>أو</span>
+                </div>
+                <p class="signup-link">
+                    ليس لديك حساب؟ 
+                    <a href="signup.html" class="link">ابدأ رحلتك الآن</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="welcome-features">
+            <div class="feature-item">
+                <div class="feature-icon">🎫</div>
+                <p class="feature-text">احجز تذاكرك</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🏆</div>
+                <p class="feature-text">اكسب بونص</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <p class="feature-text">تتبع رهطك</p>
+            </div>
+        </div>
     </div>
+
     <script type="module" src="index.js"></script>
 </body>
 </html>

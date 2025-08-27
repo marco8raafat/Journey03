@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>التحكم في المراحل</title>
+    <title>التحكم في المحطات - رحلة القطار التعليمية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Train Booking Website Design - Lock Levels Page */
         * {
             margin: 0;
             padding: 0;
@@ -12,120 +14,213 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1976D2 0%, #2196F3 50%, #64B5F6 100%);
             min-height: 100vh;
             padding: 20px;
             direction: rtl;
+            position: relative;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Background Pattern */
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px, 30px 30px;
+            z-index: -1;
+            opacity: 0.3;
         }
 
         .container {
             max-width: 1000px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             overflow: hidden;
+            position: relative;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #1976D2, #2196F3, #FF9800);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .header {
-            background: linear-gradient(45deg, #205c6b, #2a7a8a);
-            color: white;
-            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #212121;
+            padding: 40px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .train-header-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            animation: trainMove 3s ease-in-out infinite;
+        }
+
+        @keyframes trainMove {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
         }
 
         .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: #1976D2;
+            font-weight: 700;
         }
 
         .header p {
             font-size: 16px;
-            opacity: 0.9;
+            color: #666;
+            font-weight: 400;
+            line-height: 1.6;
         }
 
         .controls {
-            padding: 20px;
-            border-bottom: 2px solid #eee;
-            display: flex;
+            padding: 30px;
+            border-bottom: 2px solid rgba(238, 238, 238, 0.5);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
-            flex-wrap: wrap;
             align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .last-update-info {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            padding: 15px;
+            background: rgba(33, 150, 243, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(33, 150, 243, 0.2);
         }
 
         .btn {
-            background: linear-gradient(45deg, #10b981, #34d399);
+            background: linear-gradient(135deg, #1976D2, #2196F3);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 14px 20px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
+            font-family: inherit;
+            font-size: 14px;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
             text-decoration: none;
-            display: inline-block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn:hover {
-            background: linear-gradient(45deg, #059669, #10b981);
+            background: linear-gradient(135deg, #1565C0, #1976D2);
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
         }
 
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+            background: linear-gradient(135deg, #BDBDBD, #9E9E9E);
         }
 
-        .btn.back-btn {
-            background: linear-gradient(45deg, #6f42c1, #8e44ad);
+        .back-btn {
+            background: linear-gradient(135deg, #9C27B0, #BA68C8) !important;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3) !important;
         }
 
-        .btn.back-btn:hover {
-            background: linear-gradient(45deg, #5a2d8a, #6f42c1);
+        .back-btn:hover {
+            background: linear-gradient(135deg, #7B1FA2, #9C27B0) !important;
+            box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4) !important;
         }
 
         .filter-section {
-            padding: 20px;
-            background: #f8f9fa;
-            border-bottom: 2px solid #eee;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 2px solid rgba(238, 238, 238, 0.5);
         }
 
         .filter-group {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
             flex-wrap: wrap;
+            justify-content: center;
         }
 
         .filter-label {
-            font-weight: bold;
-            color: #205c6b;
-            font-size: 16px;
+            font-weight: 600;
+            color: #1976D2;
+            font-size: 18px;
         }
 
         .team-select {
-            padding: 10px 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
+            padding: 12px 20px;
+            border: 2px solid #E0E0E0;
+            border-radius: 12px;
             background: white;
             font-size: 16px;
+            font-family: inherit;
+            font-weight: 500;
             color: #333;
             cursor: pointer;
             transition: all 0.3s ease;
-            min-width: 200px;
+            min-width: 250px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .team-select:focus {
-            border-color: #205c6b;
+            border-color: #1976D2;
             outline: none;
-            box-shadow: 0 0 5px rgba(32, 92, 107, 0.3);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+            transform: scale(1.02);
         }
 
         .levels-container {
-            padding: 20px;
+            padding: 25px;
             display: none;
+            background: rgba(255, 255, 255, 0.8);
         }
 
         .levels-container.active {
@@ -133,200 +228,278 @@
         }
 
         .team-info {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 2px solid #205c6b;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            border: 2px solid #1976D2;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.2);
         }
 
         .team-name {
-            font-size: 20px;
-            font-weight: bold;
-            color: #205c6b;
-            margin-bottom: 5px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1976D2;
+            margin-bottom: 8px;
         }
 
         .team-members {
-            font-size: 14px;
+            font-size: 15px;
             color: #666;
+            line-height: 1.5;
         }
 
         .levels-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
         }
 
         .level-card {
             background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             border: 3px solid transparent;
+            backdrop-filter: blur(10px);
         }
 
         .level-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
         }
 
         .level-card.locked {
-            border-color: #dc3545;
-            background: #fff5f5;
+            border-color: #F44336;
+            background: linear-gradient(135deg, #FFF5F5, #FFEBEE);
         }
 
         .level-card.unlocked {
-            border-color: #10b981;
-            background: #f0fff4;
+            border-color: #4CAF50;
+            background: linear-gradient(135deg, #F1F8E9, #E8F5E8);
         }
 
         .level-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
 
         .level-number {
-            background: linear-gradient(45deg, #205c6b, #2a7a8a);
+            background: linear-gradient(135deg, #1976D2, #2196F3);
             color: white;
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
+            font-weight: 700;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
         }
 
         .level-title {
             font-size: 18px;
-            font-weight: bold;
-            color: #205c6b;
+            font-weight: 600;
+            color: #1976D2;
             flex-grow: 1;
-            margin: 0 15px;
+            margin: 0 20px;
         }
 
         .level-toggle {
             position: relative;
-            width: 60px;
-            height: 30px;
-            background: #ccc;
-            border-radius: 15px;
+            width: 65px;
+            height: 32px;
+            background: #E0E0E0;
+            border-radius: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .level-toggle.active {
-            background: #10b981;
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
         }
 
         .level-toggle::before {
             content: '';
             position: absolute;
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: white;
             top: 2px;
             left: 2px;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         }
 
         .level-toggle.active::before {
-            transform: translateX(30px);
+            transform: translateX(33px);
         }
 
         .level-description {
             color: #666;
             font-size: 14px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            line-height: 1.5;
         }
 
         .level-date {
-            color: #205c6b;
-            font-weight: bold;
+            color: #1976D2;
+            font-weight: 600;
             font-size: 14px;
+            margin-bottom: 15px;
         }
 
         .level-status {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
+            gap: 12px;
+            margin-top: 18px;
+            padding: 12px 15px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
         }
 
         .level-status.locked {
-            background: #f8d7da;
-            color: #721c24;
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            color: #C62828;
+            border: 1px solid #FFCDD2;
         }
 
         .level-status.unlocked {
-            background: #d4edda;
-            color: #155724;
+            background: linear-gradient(135deg, #E8F5E8, #C8E6C9);
+            color: #2E7D32;
+            border: 1px solid #C8E6C9;
         }
 
         .status-icon {
-            font-size: 20px;
+            font-size: 22px;
         }
 
         .bulk-actions {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             display: flex;
-            gap: 10px;
+            gap: 15px;
             flex-wrap: wrap;
+            justify-content: center;
         }
 
         .bulk-btn {
-            background: linear-gradient(45deg, #6c757d, #495057);
+            background: linear-gradient(135deg, #6C757D, #495057);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
+            padding: 14px 24px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
+            font-family: inherit;
+            font-size: 14px;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
         }
 
         .bulk-btn:hover {
-            background: linear-gradient(45deg, #495057, #343a40);
+            background: linear-gradient(135deg, #495057, #343A40);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
         }
 
         .bulk-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
 
         .bulk-btn.unlock-all {
-            background: linear-gradient(45deg, #10b981, #34d399);
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .bulk-btn.unlock-all:hover {
+            background: linear-gradient(135deg, #388E3C, #4CAF50);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
 
         .bulk-btn.lock-all {
-            background: linear-gradient(45deg, #dc3545, #c82333);
+            background: linear-gradient(135deg, #F44336, #EF5350);
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+        }
+
+        .bulk-btn.lock-all:hover {
+            background: linear-gradient(135deg, #D32F2F, #F44336);
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
         }
 
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 60px 20px;
             color: #666;
+            font-size: 18px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .loading::before {
+            content: '🔄';
+            font-size: 32px;
+            display: block;
+            margin-bottom: 15px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 8px;
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            color: #C62828;
+            padding: 20px;
+            border-radius: 12px;
             margin: 20px;
-            border: 1px solid #f5c6cb;
+            text-align: center;
+            border-left: 4px solid #F44336;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.2);
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .container {
+                border-radius: 20px;
+            }
+
+            .header {
+                padding: 25px 20px;
+            }
+
+            .header h1 {
+                font-size: 26px;
+            }
+
+            .train-header-icon {
+                font-size: 40px;
+            }
+
+            .controls {
+                padding: 20px;
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
             .levels-grid {
                 grid-template-columns: 1fr;
             }
@@ -340,26 +513,91 @@
                 min-width: auto;
                 width: 100%;
             }
+
+            .bulk-actions {
+                justify-content: stretch;
+            }
+
+            .bulk-btn {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .train-header-icon {
+                font-size: 36px;
+            }
+
+            .level-card {
+                padding: 20px;
+            }
+
+            .team-name {
+                font-size: 20px;
+            }
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #0D47A1 0%, #1565C0 50%, #1976D2 100%);
+            }
+
+            .container,
+            .header,
+            .controls,
+            .filter-section,
+            .levels-container {
+                background: rgba(33, 33, 33, 0.95);
+            }
+
+            .level-card {
+                background: rgba(66, 66, 66, 0.8);
+                border-color: rgba(119, 119, 119, 0.3);
+            }
+
+            .header h1 {
+                color: #64B5F6;
+            }
+
+            .header p {
+                color: #BDBDBD;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="background-pattern"></div>
     <div class="container">
         <div class="header">
-            <h1>التحكم في المراحل - إدارة الوصول</h1>
-            <p>تحكم في فتح وإغلاق المراحل لكل فريق على حدة</p>
+            <div class="train-header-icon">🚉</div>
+            <h1>التحكم في محطات القطار</h1>
+            <p>تحكم في فتح وإغلاق محطات الرحلة لكل فريق من المسافرين</p>
         </div>
 
         <div class="controls">
-            <button class="btn" id="saveBtn" onclick="saveAllSettings()">حفظ جميع الإعدادات</button>
-            <button class="btn" id="refreshBtn" onclick="loadTeamData()">تحديث البيانات</button>
-            <a href="map4.html" class="btn back-btn">عودة للخريطة</a>
-            <span style="margin-right: auto; color: #666;">آخر تحديث: <span id="lastUpdate">-</span></span>
+            <button class="btn" id="saveBtn" onclick="saveAllSettings()">
+                💾 حفظ جميع الإعدادات
+            </button>
+            <button class="btn" id="refreshBtn" onclick="loadTeamData()">
+                🔄 تحديث البيانات
+            </button>
+            <a href="map4.html" class="btn back-btn">
+                🗺️ عودة للخريطة
+            </a>
+            
+            <div class="last-update-info">
+                📅 آخر تحديث: <span id="lastUpdate">-</span>
+            </div>
         </div>
 
         <div class="filter-section">
             <div class="filter-group">
-                <label class="filter-label">اختر الفريق:</label>
+                <label class="filter-label">🚂 اختر فريق المسافرين:</label>
                 <select class="team-select" id="teamSelect" onchange="showTeamLevels()">
                     <option value="">-- اختر الفريق --</option>
                 </select>
@@ -372,8 +610,12 @@
             </div>
 
             <div class="bulk-actions">
-                <button class="bulk-btn unlock-all" id="unlockAllBtn" onclick="bulkToggle(true)">فتح جميع المراحل</button>
-                <button class="bulk-btn lock-all" id="lockAllBtn" onclick="bulkToggle(false)">إغلاق جميع المراحل</button>
+                <button class="bulk-btn unlock-all" id="unlockAllBtn" onclick="bulkToggle(true)">
+                    🔓 فتح جميع المحطات
+                </button>
+                <button class="bulk-btn lock-all" id="lockAllBtn" onclick="bulkToggle(false)">
+                    🔒 إغلاق جميع المحطات
+                </button>
             </div>
 
             <div class="levels-grid" id="levelsGrid">
@@ -382,7 +624,7 @@
         </div>
 
         <div class="loading" id="loading" style="display: none;">
-            جاري التحميل...
+            جاري تحميل بيانات المحطات...
         </div>
 
         <div class="error-message" id="errorMessage" style="display: none;">
@@ -451,39 +693,39 @@
         const levels = [
             { 
                 id: 1, 
-                name: "Introduction to Computing", 
-                description: "Basic computer concepts, introduction to programming logic",
-                date: "February 15, 2024" 
+                name: "المحطة الاولي", 
+                description: "...",
+                date: "..." 
             },
             { 
                 id: 2, 
-                name: "Programming Fundamentals", 
-                description: "Learn basic programming concepts, variables, loops, and functions",
-                date: "February 20, 2024" 
+                name: "المحطة الثانية", 
+                description: "...",
+                date: "..." 
             },
             { 
                 id: 3, 
-                name: "Data Structures & Algorithms", 
-                description: "Explore arrays, linked lists, trees, sorting, and searching algorithms",
-                date: "February 28, 2024" 
+                name: "المحطة الثالثة", 
+                description: "...",
+                date: "..." 
             },
             { 
                 id: 4, 
-                name: "Object-Oriented Programming", 
-                description: "Understand OOP principles, inheritance, polymorphism, and encapsulation",
-                date: "March 5, 2024" 
+                name: "المحطة الرابعة", 
+                description: "...",
+                date: "..." 
             },
             { 
                 id: 5, 
-                name: "Web Development", 
-                description: "Learn modern web technologies including React, Node.js, and databases",
-                date: "March 10, 2024" 
+                name: "المحطة الخامسة", 
+                description: "...",
+                date: "..." 
             },
             { 
                 id: 6, 
-                name: "Advanced Programming", 
-                description: "Master advanced algorithms, data structures, and design patterns",
-                date: "March 15, 2024" 
+                name: "المحطة السادسة", 
+                description: "...",
+                date: "..." 
             }
         ];
 
@@ -516,7 +758,10 @@
 
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
+            errorDiv.innerHTML = `
+                <div style="font-size: 24px; margin-bottom: 10px;">⚠️</div>
+                <div>${message}</div>
+            `;
             errorDiv.style.display = 'block';
             setTimeout(() => {
                 errorDiv.style.display = 'none';
@@ -562,7 +807,7 @@
                 
             } catch (error) {
                 console.error('Error loading team data:', error);
-                showError('حدث خطأ في تحميل البيانات. الرجاء المحاولة مرة أخرى.');
+                showError('حدث خطأ في تحميل بيانات الفرق. الرجاء المحاولة مرة أخرى.');
             } finally {
                 hideLoading();
                 setButtonsDisabled(false);
@@ -589,9 +834,9 @@
                 const userCount = users.filter(user => user.team === team).length;
                 
                 if (hasUsers) {
-                    option.textContent = `${team} (${userCount} عضو)`;
+                    option.textContent = `${team} (${userCount} مسافر)`;
                 } else {
-                    option.textContent = `${team} (لا يوجد أعضاء)`;
+                    option.textContent = `${team} (لا يوجد مسافرين)`;
                     option.style.color = '#999';
                 }
                 
@@ -627,18 +872,18 @@
             const teamInfo = document.getElementById('teamInfo');
             if (teamMembers.length > 0) {
                 teamInfo.innerHTML = `
-                    <div class="team-name">${teamName}</div>
+                    <div class="team-name">🚂 فريق ${teamName}</div>
                     <div class="team-members">
-                        عدد الأعضاء: ${teamMembers.length} | 
-                        الأعضاء: ${teamMembers.map(m => m.name).join('، ')}
+                        عدد المسافرين: ${teamMembers.length} | 
+                        المسافرين: ${teamMembers.map(m => m.name).join('، ')}
                     </div>
                 `;
             } else {
                 teamInfo.innerHTML = `
-                    <div class="team-name">${teamName}</div>
+                    <div class="team-name">🚂 فريق ${teamName}</div>
                     <div class="team-members">
-                        عدد الأعضاء: 0 | 
-                        لا توجد أعضاء مسجلة في هذا الفريق حتى الآن
+                        عدد المسافرين: 0 | 
+                        لا يوجد مسافرين مسجلين في هذا الفريق حتى الآن
                     </div>
                 `;
             }
@@ -666,8 +911,8 @@
                     <div class="level-description">${level.description}</div>
                     <div class="level-date">التاريخ: ${level.date}</div>
                     <div class="level-status ${isUnlocked ? 'unlocked' : 'locked'}">
-                        <span class="status-icon">${isUnlocked ? '🔓' : '🔒'}</span>
-                        <span>${isUnlocked ? 'مفتوحة للحجز' : 'مغلقة'}</span>
+                        <span class="status-icon">${isUnlocked ? '�' : '🔒'}</span>
+                        <span>${isUnlocked ? 'محطة مفتوحة للصعود' : 'محطة مغلقة'}</span>
                     </div>
                 `;
                 
@@ -703,7 +948,7 @@
                 
             } catch (error) {
                 console.error('Error toggling level:', error);
-                showError('حدث خطأ في تحديث حالة المرحلة');
+                showError('حدث خطأ في تحديث حالة المحطة');
             } finally {
                 setButtonsDisabled(false);
             }
@@ -735,7 +980,7 @@
                 
             } catch (error) {
                 console.error('Error in bulk toggle:', error);
-                showError('حدث خطأ في تحديث المراحل');
+                showError('حدث خطأ في تحديث المحطات');
             } finally {
                 hideLoading();
                 setButtonsDisabled(false);
@@ -749,11 +994,11 @@
                 showLoading();
                 
                 await set(ref(database, 'levelSettings'), levelSettings);
-                alert('تم حفظ جميع إعدادات التحكم في المراحل بنجاح!');
+                alert('✅ تم حفظ جميع إعدادات التحكم في المحطات بنجاح!');
                 
             } catch (error) {
                 console.error('Error saving settings:', error);
-                showError('حدث خطأ في حفظ الإعدادات');
+                showError('❌ حدث خطأ في حفظ الإعدادات');
             } finally {
                 hideLoading();
                 setButtonsDisabled(false);

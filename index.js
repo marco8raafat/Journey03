@@ -25,6 +25,18 @@ document.addEventListener('DOMContentLoaded', function() {
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        // Show loading state
+        const submitBtn = document.querySelector('.login-btn');
+        const btnText = document.querySelector('.btn-text');
+        const btnIcon = document.querySelector('.btn-icon');
+        
+        const originalText = btnText.textContent;
+        const originalIcon = btnIcon.textContent;
+        
+        submitBtn.disabled = true;
+        btnText.textContent = 'جاري تسجيل الدخول...';
+        btnIcon.textContent = '⏳';
+        
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         
@@ -44,15 +56,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Store current user session
                     localStorage.setItem('currentUser', email);
                     
-                    // Show success message
-                    alert('تم تسجيل الدخول بنجاح!');
+                    // Show success state
+                    btnText.textContent = 'تم بنجاح!';
+                    btnIcon.textContent = '✅';
                     
-                    // Redirect based on role
-                    if (user.role === 'admin') {
-                        window.location.href = 'adminDash.html';
-                    } else {
-                        window.location.href = 'map4.html';
-                    }
+                    // Show success message
+                    setTimeout(() => {
+                        // alert('مرحباً بعودتك! تم تسجيل الدخول بنجاح.');
+                        
+                        // Redirect based on role
+                        if (user.role === 'admin') {
+                            window.location.href = 'adminDash.html';
+                        } else {
+                            window.location.href = 'map4.html';
+                        }
+                    }, 1000);
                 } else {
                     alert('البريد الإلكتروني أو كلمة المرور غير صحيحة');
                 }
@@ -63,6 +81,13 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error during login:', error);
             alert('حدث خطأ أثناء تسجيل الدخول. الرجاء المحاولة مرة أخرى.');
+        } finally {
+            // Reset button state if there was an error
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                btnText.textContent = originalText;
+                btnIcon.textContent = originalIcon;
+            }, 2000);
         }
     });
     
