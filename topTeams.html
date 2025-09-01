@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أفضل 10 فرق حسب المكافآت</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1976D2 0%, #2196F3 50%, #64B5F6 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.97);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            padding: 40px 20px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 32px;
+            color: #1976D2;
+            font-weight: 700;
+        }
+        .header p {
+            font-size: 16px;
+            color: #666;
+            font-weight: 400;
+        }
+        .teams-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            margin-top: 20px;
+        }
+        .teams-table th {
+            background: linear-gradient(135deg, #1976D2, #2196F3);
+            color: white;
+            padding: 18px 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .teams-table td {
+            padding: 15px 10px;
+            text-align: center;
+            border: 1px solid #eee;
+            font-size: 15px;
+            background: rgba(255,255,255,0.95);
+        }
+        .teams-table tbody tr:nth-child(even) {
+            background-color: #f6fafd;
+        }
+        .teams-table tbody tr:hover {
+            background-color: #e3f2fd;
+            transition: all 0.3s ease;
+        }
+        .rank-cell {
+            font-size: 20px;
+            font-weight: 700;
+            color: #FF9800;
+        }
+        .team-name {
+            font-weight: 600;
+            color: #1976D2;
+        }
+        .bonus-cell {
+            font-weight: 700;
+            color: #388E3C;
+        }
+        .members-cell {
+            color: #607D8B;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            font-size: 18px;
+        }
+        .error-message {
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            color: #C62828;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px;
+            text-align: center;
+            border-left: 4px solid #F44336;
+            box-shadow: 0 4px 15px rgba(244,67,54,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>أفضل 10 رهوط حسب مجموع البونص</h1>
+        </div>
+        <div id="loadingMessage" class="loading">جاري تحميل بيانات الفرق...</div>
+        <div id="errorMessage" class="error-message" style="display:none;"></div>
+        <table class="teams-table" id="teamsTable" style="display:none;">
+            <thead>
+                <tr>
+                    <th>الترتيب</th>
+                    <th>اسم الرهط</th>
+                    <th>إجمالي البونص</th>
+                </tr>
+            </thead>
+            <tbody id="teamsTableBody">
+            </tbody>
+        </table>
+    </div>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getDatabase, ref, get, child } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHp8tHdlNoykCrMFZvl1gJKwcIGLcJ8gM",
+            authDomain: "journey03-ed32f.firebaseapp.com",
+            databaseURL: "https://journey03-ed32f-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "journey03-ed32f",
+            storageBucket: "journey03-ed32f.firebasestorage.app",
+            messagingSenderId: "637158543040",
+            appId: "1:637158543040:web:4ddfd0c0bc412cb6716725",
+            measurementId: "G-PPVXVYL8E2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        async function loadTopTeams() {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const teamsTable = document.getElementById('teamsTable');
+            const teamsTableBody = document.getElementById('teamsTableBody');
+            try {
+                loadingMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+                teamsTable.style.display = 'none';
+
+                const dbRef = ref(database);
+                const snapshot = await get(child(dbRef, 'users'));
+                if (!snapshot.exists()) {
+                    loadingMessage.style.display = 'none';
+                    errorMessage.style.display = 'block';
+                    errorMessage.textContent = 'لا توجد بيانات مستخدمين.';
+                    return;
+                }
+                const users = Object.values(snapshot.val());
+                // Aggregate bonuses by team
+                const teamStats = {};
+                users.forEach(user => {
+                    const team = user.team || 'بدون فريق';
+                    let userTotal = 0;
+                    for (let i = 1; i <= 6; i++) {
+                        userTotal += parseFloat(user[`bonus${i}`]) || 0;
+                    }
+                    if (!teamStats[team]) {
+                        teamStats[team] = { totalBonus: 0, members: 0 };
+                    }
+                    teamStats[team].totalBonus += userTotal;
+                    teamStats[team].members += 1;
+                });
+                // Convert to array and sort
+                const sortedTeams = Object.entries(teamStats)
+                    .map(([team, stats]) => ({ team, ...stats }))
+                    .sort((a, b) => b.totalBonus - a.totalBonus)
+                    .slice(0, 10);
+                // Render table
+                teamsTableBody.innerHTML = '';
+                sortedTeams.forEach((teamObj, idx) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="rank-cell">${idx + 1}</td>
+                        <td class="team-name">${teamObj.team}</td>
+                        <td class="bonus-cell">${teamObj.totalBonus.toFixed(1)}</td>
+                    `;
+                    teamsTableBody.appendChild(row);
+                });
+                loadingMessage.style.display = 'none';
+                teamsTable.style.display = 'table';
+            } catch (error) {
+                loadingMessage.style.display = 'none';
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'حدث خطأ أثناء تحميل البيانات: ' + error.message;
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadTopTeams);
+    </script>
+</body>
+</html>
